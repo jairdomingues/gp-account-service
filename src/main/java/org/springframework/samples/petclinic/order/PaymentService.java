@@ -1,6 +1,5 @@
-package org.springframework.samples.petclinic.order.service;
+package org.springframework.samples.petclinic.order;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,9 +11,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.samples.petclinic.order.controller.PaymentRequest;
-import org.springframework.samples.petclinic.order.controller.SalesOrderRequest;
-import org.springframework.samples.petclinic.order.model.Payment;
 import org.springframework.samples.petclinic.system.Account;
 import org.springframework.samples.petclinic.system.AccountService;
 import org.springframework.samples.petclinic.system.CurrentAccount;
@@ -23,9 +19,9 @@ import org.springframework.samples.petclinic.system.Customer;
 import org.springframework.samples.petclinic.system.CustomerRepository;
 import org.springframework.samples.petclinic.system.LoginAppRequest;
 import org.springframework.samples.petclinic.system.LoginAppResponse;
-import org.springframework.samples.petclinic.system.Wallet;
 import org.springframework.samples.petclinic.system.TransactionHistory.Operation;
 import org.springframework.samples.petclinic.system.TransactionHistory.TransactionType;
+import org.springframework.samples.petclinic.system.Wallet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;

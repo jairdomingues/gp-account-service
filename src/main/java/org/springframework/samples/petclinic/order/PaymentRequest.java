@@ -1,9 +1,9 @@
-package org.springframework.samples.petclinic.order.controller;
+package org.springframework.samples.petclinic.order;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.springframework.samples.petclinic.order.model.Payment.PaymentMethod;
+import org.springframework.samples.petclinic.order.Payment.PaymentMethod;
 
 import lombok.Getter;
 import lombok.Setter;

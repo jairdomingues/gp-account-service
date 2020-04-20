@@ -1,32 +1,16 @@
-package org.springframework.samples.petclinic.order.service;
+package org.springframework.samples.petclinic.order;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.samples.petclinic.order.controller.SalesOrderRequest;
-import org.springframework.samples.petclinic.order.controller.SalesOrderResponse;
-import org.springframework.samples.petclinic.order.model.SalesOrder;
-import org.springframework.samples.petclinic.order.respository.SalesOrderRepository;
-import org.springframework.samples.petclinic.system.Account;
-import org.springframework.samples.petclinic.system.AccountResponse;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
-import org.springframework.samples.petclinic.system.Customer;
-import org.springframework.samples.petclinic.system.Wallet;
-import org.springframework.samples.petclinic.system.WalletRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
 
 @Service
 @Transactional

@@ -1,4 +1,4 @@
-package org.springframework.samples.petclinic.order.controller;
+package org.springframework.samples.petclinic.order;
 
 import java.util.List;
 
@@ -10,7 +10,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.samples.petclinic.order.service.SalesOrderService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;

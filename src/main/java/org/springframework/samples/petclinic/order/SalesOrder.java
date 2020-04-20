@@ -1,8 +1,7 @@
-package org.springframework.samples.petclinic.order.model;
+package org.springframework.samples.petclinic.order;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,7 +12,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.springframework.samples.petclinic.system.TransactionHistory;
+import org.springframework.samples.petclinic.system.BaseEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

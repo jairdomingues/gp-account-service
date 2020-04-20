@@ -1,4 +1,4 @@
-package org.springframework.samples.petclinic.order.controller;
+package org.springframework.samples.petclinic.order;
 
 import java.io.Serializable;
 import java.util.List;

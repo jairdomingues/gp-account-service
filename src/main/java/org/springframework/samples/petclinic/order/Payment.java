@@ -1,19 +1,14 @@
-package org.springframework.samples.petclinic.order.model;
+package org.springframework.samples.petclinic.order;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
-import org.springframework.samples.petclinic.system.TransactionHistory;
+import org.springframework.samples.petclinic.system.BaseEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

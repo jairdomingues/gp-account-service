@@ -1,10 +1,10 @@
-package org.springframework.samples.petclinic.order.controller;
+package org.springframework.samples.petclinic.order;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.samples.petclinic.order.model.SalesOrder.Status;
+import org.springframework.samples.petclinic.order.SalesOrder.Status;
 
 import lombok.Getter;
 import lombok.Setter;
