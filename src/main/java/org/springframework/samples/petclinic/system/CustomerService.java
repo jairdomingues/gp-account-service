@@ -6,6 +6,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.samples.petclinic.order.SalesOrder;
+import org.springframework.samples.petclinic.order.SalesOrderResponse;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,10 +33,30 @@ public class CustomerService {
 		customerRepository.save(customer);
 		LOGGER.info(customerRequest.getFirstname());
 	}
+	
+	public CustomerResponse findCustomerById(Long customerId) {
+		Customer customer = customerRepository.findById(customerId)
+			.orElse(null);
+		return convertToCustomerResponse(customer);
+	}
+
+	public CustomerResponse findCustomerByIdUser(String idUser) {
+		Customer customer = customerRepository.findByIdUser(idUser)
+			.orElse(null);
+		if (customer == null) {
+			return null;
+		}
+		return convertToCustomerResponse(customer);
+	}
 
 	private Customer convertToEntity(CustomerRequest customerRequest) {
 		ModelMapper modelMapper = new ModelMapper();
 		return modelMapper.map(customerRequest, Customer.class);
+	}
+
+	private CustomerResponse convertToCustomerResponse(Customer customer) {
+		ModelMapper modelMapper = new ModelMapper();
+		return modelMapper.map(customer, CustomerResponse.class);
 	}
 
 }

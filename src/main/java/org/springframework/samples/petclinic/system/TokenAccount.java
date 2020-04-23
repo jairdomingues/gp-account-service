@@ -7,9 +7,13 @@ import java.time.ZoneId;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.springframework.samples.petclinic.system.TransactionHistory.TransactionType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,6 +30,24 @@ import lombok.ToString;
 @Table(name = "TOKEN_ACCOUNT")
 public class TokenAccount extends BaseEntity {
 
+	public static enum Type {
+		WALLET("Wallet"), SHARE("Indicação");
+
+		private final String value;
+
+		private Type(final String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "type", nullable = false)
+	private Type type;
+	
 	@Column(name = "valid", nullable = false)
 	private Boolean valid;
 

@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.system.TokenAccount.Type;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,6 +67,21 @@ public class AccountController {
 		return ResponseEntity.ok(new MessageResponse("Payment approved!"));
 	}
 
+	@PostMapping(path = "/tansaction_history", produces = "application/json", consumes = "application/json")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<?> createTransactionHistory(@Valid @RequestBody TransactionHistoryRequest transactionHistoryRequest) {
+		accountService.createTransactionHistory(transactionHistoryRequest);
+		return ResponseEntity.ok(new MessageResponse("Transaction OK."));
+	}
+
+	@GetMapping(path = "/share/{id}", produces = "application/json")
+	public ResponseEntity<?> shareToken(@PathVariable(name = "id") Long accountId) {
+		TokenAccountRequest tokenAccountRequest = new TokenAccountRequest();
+		tokenAccountRequest.setAccountId(accountId);
+		tokenAccountRequest.setType(Type.SHARE);
+		return ResponseEntity.ok(accountService.genereateToken(tokenAccountRequest));
+	}
+	
 	@GetMapping(path = "/accounts", produces = "application/json")
 	public List<AccountResponse> findAllAccounts() {
 		return accountService.findAllAccounts();

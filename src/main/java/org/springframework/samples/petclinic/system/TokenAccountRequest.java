@@ -11,6 +11,7 @@ public class TokenAccountRequest implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	private TokenAccount.Type type;
 	private Long accountId;
 	private String password;
 }

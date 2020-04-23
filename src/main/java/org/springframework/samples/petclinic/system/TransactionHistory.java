@@ -28,7 +28,8 @@ import lombok.ToString;
 public class TransactionHistory extends BaseEntity {
 
 	public static enum Operation {
-		PAYMENT("payment"), WITHDRAW("withdraw"), DEPOSIT("deposit"), TRANSFER("transfer");
+		PAYMENT("payment"), WITHDRAW("withdraw"), DEPOSIT("deposit"), TRANSFER("transfer"),
+		SHARE("Indicação");
 
 		private final String value;
 
@@ -56,7 +57,8 @@ public class TransactionHistory extends BaseEntity {
 	}
 
 	public static enum Status {
-		ACTIVE("Active"), PREVIOUS("Previous"), Estorno("Estorno");
+		ACTIVE("Active"), PREVIOUS("Previous"), Estorno("Estorno"),
+		BLOCK("Bloqueado");
 
 		private final String value;
 

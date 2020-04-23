@@ -20,6 +20,7 @@ import org.springframework.samples.petclinic.system.CustomerRepository;
 import org.springframework.samples.petclinic.system.LoginAppRequest;
 import org.springframework.samples.petclinic.system.LoginAppResponse;
 import org.springframework.samples.petclinic.system.TransactionHistory.Operation;
+import org.springframework.samples.petclinic.system.TransactionHistory.Status;
 import org.springframework.samples.petclinic.system.TransactionHistory.TransactionType;
 import org.springframework.samples.petclinic.system.Wallet;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class PaymentService {
 					if (account instanceof Wallet) {
 						Wallet wallet = (Wallet) account;
 						process(wallet.getHashCard(), paymentRequest.getAmount().toString());
-						accountService.createTransactionHistory(wallet.getId(), Operation.PAYMENT, TransactionType.DEBIT,
+						accountService.createTransactionHistory(wallet.getId(), Operation.PAYMENT, TransactionType.DEBIT, Status.ACTIVE, 
 								"Pagto com crypto moeda id " + orderId,
 								paymentRequest.getAmount(), 1l);
 					}
@@ -64,7 +65,7 @@ public class PaymentService {
 				for ( Account account : customer.getWalletOfCustomer().getAccountsInWallet()) {
 					if (account instanceof CurrentAccount) {
 						CurrentAccount currentAccount = (CurrentAccount) account;
-						accountService.createTransactionHistory(currentAccount.getId(), Operation.PAYMENT, TransactionType.DEBIT,
+						accountService.createTransactionHistory(currentAccount.getId(), Operation.PAYMENT, TransactionType.DEBIT, Status.ACTIVE, 
 								"Pagto conta digital id " + orderId,
 								paymentRequest.getAmount(), 1l);
 					}

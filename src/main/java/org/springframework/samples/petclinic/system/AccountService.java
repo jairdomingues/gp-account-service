@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.system.TransactionHistory.Operation;
+import org.springframework.samples.petclinic.system.TransactionHistory.Status;
 import org.springframework.samples.petclinic.system.TransactionHistory.TransactionType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -118,11 +119,16 @@ public class AccountService {
 		Account account = accountRepository.findById(tokenAccountRequest.getAccountId())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Account is not found."));
 
-		if (!account.getWalletHolder().getPassword().equals(tokenAccountRequest.getPassword())) {
-			throw new CustomGenericNotFoundException("Error: Password is invalid.");
+		
+		if (tokenAccountRequest.getType().equals(TokenAccount.Type.WALLET)) {
+			//verificar a password para geração de token de WALLET 
+			if (!account.getWalletHolder().getPassword().equals(tokenAccountRequest.getPassword())) {
+				throw new CustomGenericNotFoundException("Error: Password is invalid.");
+			}
 		}
 		TokenAccount tokenAccount = new TokenAccount();
 		tokenAccount.setAccount(account);
+		tokenAccount.setType(tokenAccountRequest.getType().equals(TokenAccount.Type.WALLET)?TokenAccount.Type.WALLET:TokenAccount.Type.SHARE);
 		tokenAccount.setValid(true);
 		tokenAccountRepository.save(tokenAccount);
 
@@ -158,7 +164,7 @@ public class AccountService {
 			System.out.println("code credit card");
 		}
 
-		this.createTransactionHistory(tokenAccount.getAccount().getId(), Operation.PAYMENT, TransactionType.DEBIT,
+		this.createTransactionHistory(tokenAccount.getAccount().getId(), Operation.PAYMENT, TransactionType.DEBIT, Status.ACTIVE, 
 				"Pagto crypto moeda ID: " + response.getResultado(),
 				new BigDecimal(tokenAccountValidRequest.getAmount()), 1l);
 
@@ -219,7 +225,11 @@ public class AccountService {
 		accountRepository.delete(account);
 	}
 
-	public void createTransactionHistory(Long idAccount, Operation operation, TransactionType transactionType,
+	public void createTransactionHistory(TransactionHistoryRequest transactionHistoryRequest) {
+		this.createTransactionHistory(transactionHistoryRequest.getIdAccount(), transactionHistoryRequest.getOperation(), transactionHistoryRequest.getTransactionType(), transactionHistoryRequest.getStatus(), transactionHistoryRequest.getHistory(), transactionHistoryRequest.getAmount(), transactionHistoryRequest.getOrderId());
+	}
+
+	public void createTransactionHistory(Long idAccount, Operation operation, TransactionType transactionType, TransactionHistory.Status status,
 			String history, BigDecimal amount, Long orderId) {
 
 		Account account = accountRepository.findById(idAccount)
@@ -233,7 +243,7 @@ public class AccountService {
 		TransactionHistory transactionHistory = new TransactionHistory();
 		transactionHistory.setOperation(operation);
 		transactionHistory.setTransactionType(transactionType);
-		transactionHistory.setStatus(TransactionHistory.Status.ACTIVE);
+		transactionHistory.setStatus(status);
 		transactionHistory.setHistory(history);
 		transactionHistory.setAmount(amount);
 		transactionHistory.setTransactionDate(new Date());
