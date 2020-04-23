@@ -87,6 +87,11 @@ public class AccountController {
 		return accountService.findAllAccounts();
 	}
 
+	@GetMapping(path = "/customer_accounts/{id}", produces = "application/json")
+	public List<AccountResponse> findAllByCustomer(@PathVariable(name = "id") Long customerId) {
+		return accountService.findAllByCustomer(customerId);
+	}
+	
 	@DeleteMapping("/accounts/{id}")
 	public void delete(@PathVariable(name = "id") Long idAccount) {
 		accountService.deleteById(idAccount);

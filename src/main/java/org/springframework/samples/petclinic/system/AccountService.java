@@ -50,6 +50,12 @@ public class AccountService {
 				.map(this::convertToAccountResponse).collect(Collectors.toList());
 	}
 
+	public List<AccountResponse> findAllByCustomer(Long customerId) {
+		List<Account> accounts = (List<Account>) accountRepository.findAllByCustomer(customerId);
+		return accounts.stream().sorted(Comparator.comparing(Account::getCreateDate).reversed())
+				.map(this::convertToAccountResponse).collect(Collectors.toList());
+	}
+
 	public void createCurrentAccount(CurrentAccountRequest currentAccountRequest) {
 		CurrentAccount account = this.convertToCurrentAccount(currentAccountRequest);
 		Customer customer = customerRepository.findById(currentAccountRequest.getCustomer().getId())
