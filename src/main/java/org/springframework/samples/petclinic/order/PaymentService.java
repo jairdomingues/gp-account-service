@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.system.Account;
+import org.springframework.samples.petclinic.system.AccountRepository;
 import org.springframework.samples.petclinic.system.AccountService;
 import org.springframework.samples.petclinic.system.CurrentAccount;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
@@ -51,6 +52,9 @@ public class PaymentService {
 
 	@Autowired
 	TokenAccountRepository tokenAccountRepository;
+
+	@Autowired
+	AccountRepository accountRepository;
 
 	@Autowired
 	AccountService accountService;
@@ -94,15 +98,16 @@ public class PaymentService {
 
 	public void validTokenAccount(TokenAccountValidRequest tokenAccountValidRequest) {
 
-		System.out.println("entrei 2");
 		SalesOrder salesOrder = salesOrderRepository.findById(tokenAccountValidRequest.getOrderId())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: SalesOrder is not found."));
-		System.out.println("entrei 2");
 
-		//this.updateToken(tokenAccountValidRequest.getUuid());
-
+		TokenAccount tokenAccount = this.updateToken(tokenAccountValidRequest.getUuid());
+		
+		Account account = accountRepository.findById(tokenAccount.getAccount().getId())
+			.orElseThrow(() -> new CustomGenericNotFoundException("Error: Account is not found."));
+		
 		SalesOrderRequest salesOrderRequest = new SalesOrderRequest();
-		salesOrderRequest.setClientRef(salesOrder.getClientRef());
+		salesOrderRequest.setClientRef(account.getCustomer().getId());
 		salesOrderRequest.setPartnerRef(salesOrder.getPartnerRef());
 		List<PaymentRequest> payments = salesOrder.getPayments().stream().map(this::convertToPaymentRequest)
 				.collect(Collectors.toList());
@@ -167,9 +172,9 @@ public class PaymentService {
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Token is invalid."));
 		tokenAccount.setValid(false);
 		tokenAccountRepository.save(tokenAccount);
-		if (tokenAccount.getExpired()) {
-			throw new CustomGenericNotFoundException("Error: Token is expired.");
-		}
+//		if (tokenAccount.getExpired()) {
+//			throw new CustomGenericNotFoundException("Error: Token is expired.");
+//		}
 		return tokenAccount;
 	}
 
