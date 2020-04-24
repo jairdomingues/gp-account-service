@@ -28,9 +28,11 @@ public class SalesOrderService {
 		SalesOrder salesOrder = this.convertToSalesOrder(salesOrderRequest);
 		salesOrder.setStatus(SalesOrder.Status.PENDING);
 		salesOrderRepository.save(salesOrder);
-		if (paymentService.paymentSalesOrder(salesOrder.getId(), salesOrderRequest).equals("Approved")) {
-			salesOrder.setStatus(SalesOrder.Status.PAID);
-			salesOrderRepository.save(salesOrder);
+		if (salesOrderRequest.getEcommerce()) {
+			if (paymentService.paymentSalesOrder(salesOrder.getId(), salesOrderRequest).equals("Approved")) {
+				salesOrder.setStatus(SalesOrder.Status.PAID);
+				salesOrderRepository.save(salesOrder);
+			}
 		}
 		return convertToSalesOrderResponse(salesOrder);
 	}

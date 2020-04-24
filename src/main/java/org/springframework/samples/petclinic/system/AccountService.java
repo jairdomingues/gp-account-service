@@ -18,6 +18,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.order.SalesOrder;
+import org.springframework.samples.petclinic.order.SalesOrderRepository;
 import org.springframework.samples.petclinic.system.TransactionHistory.Operation;
 import org.springframework.samples.petclinic.system.TransactionHistory.Status;
 import org.springframework.samples.petclinic.system.TransactionHistory.TransactionType;
@@ -43,6 +45,9 @@ public class AccountService {
 
 	@Autowired
 	private TokenAccountRepository tokenAccountRepository;
+
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
 
 	public List<AccountResponse> findAllAccounts() {
 		List<Account> accounts = (List<Account>) accountRepository.findAll();
@@ -75,6 +80,11 @@ public class AccountService {
 		accountRepository.save(account);
 		LOGGER.info(currentAccountRequest.getName());
 
+		//para testes ...
+		this.createTransactionHistory(account.getId(), Operation.DEPOSIT,
+				TransactionType.CREDIT, Status.ACTIVE, "Recebimento deposito boleto  id "+1l,
+				new BigDecimal(1000.00), 1l);
+		
 	}
 
 	public void createCreditCard(CreditCardRequest creditCardRequest) {
@@ -137,88 +147,7 @@ public class AccountService {
 		tokenAccount.setType(tokenAccountRequest.getType().equals(TokenAccount.Type.WALLET)?TokenAccount.Type.WALLET:TokenAccount.Type.SHARE);
 		tokenAccount.setValid(true);
 		tokenAccountRepository.save(tokenAccount);
-
 		return convertToTokenAccountResponse(tokenAccount);
-
-	}
-
-	@Transactional(isolation = Isolation.SERIALIZABLE)
-	private TokenAccount updateToken(String uuid) {
-		TokenAccount tokenAccount = tokenAccountRepository.findByUuidValid(uuid)
-				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Token is invalid."));
-		tokenAccount.setValid(false);
-		tokenAccountRepository.save(tokenAccount);
-		if (tokenAccount.getExpired()) {
-			throw new CustomGenericNotFoundException("Error: Token is expired.");
-		}
-		return tokenAccount;
-	}
-	
-	public void validTokenAccount(TokenAccountValidRequest tokenAccountValidRequest) {
-
-		TokenAccount tokenAccount = this.updateToken(tokenAccountValidRequest.getUuid());
-		
-		LoginAppResponse response = null;
-		if (tokenAccount.getAccount() instanceof CurrentAccount) {
-			System.out.println("code current account");
-		}
-		if (tokenAccount.getAccount() instanceof Wallet) {
-			Wallet wallet = (Wallet) tokenAccount.getAccount();
-			response = process(wallet.getHashCard(), tokenAccountValidRequest.getAmount());
-		}
-		if (tokenAccount.getAccount() instanceof CreditCard) {
-			System.out.println("code credit card");
-		}
-
-		this.createTransactionHistory(tokenAccount.getAccount().getId(), Operation.PAYMENT, TransactionType.DEBIT, Status.ACTIVE, 
-				"Pagto crypto moeda ID: " + response.getResultado(),
-				new BigDecimal(tokenAccountValidRequest.getAmount()), 1l);
-
-	}
-
-	private LoginAppResponse process(String hashCartao, String amount) {
-
-		final String uri = "https://treeppayhmg.azurewebsites.net/api/Conta/loginApp";
-		ResponseEntity<LoginAppResponse> response = null;
-		LoginAppRequest loginApp = new LoginAppRequest();
-		loginApp.setLogin("teste@teste.com");
-		loginApp.setSenha("123456");
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		HttpEntity<LoginAppRequest> entity = new HttpEntity<LoginAppRequest>(loginApp, headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<LoginAppResponse> result = restTemplate.postForEntity(uri, entity, LoginAppResponse.class);
-
-			System.out.println("4");
-
-		if (result.getBody().getSucesso().equals("true")) {
-
-			System.out.println("5");
-
-			String token = result.getBody().getResultado();
-			final String url = "https://treeppayhmg.azurewebsites.net/api/Venda/VendaDireta?hashCartao="+hashCartao+"&valor="+amount;
-			headers = new HttpHeaders();
-			headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-			headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-			Map<String, String> bodyParamMap = new HashMap<String, String>();
-			bodyParamMap.put("hashCartao", "BF0440CB-1857-40F5-9F60-DA18899B3883");
-			bodyParamMap.put("valor", "1");
-			String reqBodyData = null;
-			try {
-				reqBodyData = new ObjectMapper().writeValueAsString(bodyParamMap);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
-			HttpEntity<String> requestEnty = new HttpEntity<>(reqBodyData, headers);
-  	                restTemplate = new RestTemplate();
-			response = restTemplate.postForEntity(url, requestEnty, LoginAppResponse.class);
-			if (!response.getBody().getSucesso().equals("true")) {
-				throw new CustomGenericNotFoundException("Error: not authorized");
-			}
-		} else {
-			throw new CustomGenericNotFoundException("Error: not authorized");
-		}
-		return response.getBody();
 	}
 
 	public void deleteById(Long idAccount) {

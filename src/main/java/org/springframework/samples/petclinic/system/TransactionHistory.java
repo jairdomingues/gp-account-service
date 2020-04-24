@@ -58,7 +58,7 @@ public class TransactionHistory extends BaseEntity {
 
 	public static enum Status {
 		ACTIVE("Active"), PREVIOUS("Previous"), Estorno("Estorno"),
-		BLOCK("Bloqueado");
+		BLOCKED("Bloqueado");
 
 		private final String value;
 

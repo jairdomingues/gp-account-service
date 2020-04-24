@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.order.PaymentService;
 import org.springframework.samples.petclinic.system.TokenAccount.Type;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -35,6 +36,9 @@ public class AccountController {
 
 	@Autowired
 	AccountService accountService;
+
+	@Autowired
+	PaymentService paymentService;
 
 	@PostMapping(path = "/current_account", produces = "application/json", consumes = "application/json")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -63,7 +67,7 @@ public class AccountController {
 	@PostMapping(path = "/valid_token", produces = "application/json", consumes = "application/json")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<?> validToken(@Valid @RequestBody TokenAccountValidRequest tokenAccountValidRequest) {
-		accountService.validTokenAccount(tokenAccountValidRequest);
+		paymentService.validTokenAccount(tokenAccountValidRequest);
 		return ResponseEntity.ok(new MessageResponse("Payment approved!"));
 	}
 

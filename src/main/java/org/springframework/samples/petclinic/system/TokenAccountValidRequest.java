@@ -13,5 +13,6 @@ public class TokenAccountValidRequest implements Serializable {
 
 	private Long customerId;
 	private String uuid;
-	private String amount;
+	private Long orderId;
+	
 }

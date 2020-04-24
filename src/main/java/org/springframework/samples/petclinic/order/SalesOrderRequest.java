@@ -15,5 +15,6 @@ public class SalesOrderRequest implements Serializable {
 	private Long clientRef;
 	private Long partnerRef;
 	private List<PaymentRequest> payments;
+	private Boolean ecommerce;
 
 }
