@@ -67,6 +67,7 @@ public class AccountController {
 	@PostMapping(path = "/valid_token", produces = "application/json", consumes = "application/json")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<?> validToken(@Valid @RequestBody TokenAccountValidRequest tokenAccountValidRequest) {
+		System.out.println("entrei 1");
 		paymentService.validTokenAccount(tokenAccountValidRequest);
 		return ResponseEntity.ok(new MessageResponse("Payment approved!"));
 	}

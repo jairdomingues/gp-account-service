@@ -94,10 +94,12 @@ public class PaymentService {
 
 	public void validTokenAccount(TokenAccountValidRequest tokenAccountValidRequest) {
 
+		System.out.println("entrei 2");
 		SalesOrder salesOrder = salesOrderRepository.findById(tokenAccountValidRequest.getOrderId())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: SalesOrder is not found."));
+		System.out.println("entrei 2");
 
-		this.updateToken(tokenAccountValidRequest.getUuid());
+		//this.updateToken(tokenAccountValidRequest.getUuid());
 
 		SalesOrderRequest salesOrderRequest = new SalesOrderRequest();
 		salesOrderRequest.setClientRef(salesOrder.getClientRef());
