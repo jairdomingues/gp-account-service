@@ -5,8 +5,8 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.springframework.samples.petclinic.system.BaseEntity;
@@ -31,7 +31,7 @@ public class Partner extends BaseEntity {
 	private String lastname;
 	private String userId;
 
-	@ManyToOne
+	@OneToOne
 	private PartnerAccount account;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
