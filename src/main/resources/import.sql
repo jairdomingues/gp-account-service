@@ -7,7 +7,7 @@ INSERT INTO public.partner_address(id, change_date, change_user, create_date, cr
 INSERT INTO public.partner_account(id, change_date, change_user, create_date, create_user, uuid, version, active, last_balance, name, partner_id) VALUES (1, current_timestamp, 'admin', current_timestamp, 'admin', 'aasaaa1', 0, 'true', 0.00, 'minha conta', 1);
 
 INSERT INTO public.partner(id, change_date, change_user, create_date, create_user, uuid, version, document, firstname, lastname, user_id, account_id) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaxcca2', 0, '1234567890', 'FAPA', 'FAPA', null, null);
-INSERT INTO public.partner_address(id, change_date, change_user, create_date, create_user, uuid, version, city, complement, country, defaults, lat, lng, neighborhood, "number", province, reference_point, street, zip, partner_id) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aadxxxa13', 0, 'Santa Cruz do Sul', 'casa', 'Brasil', true, -30,0158674, -51,1190112, 'Centro', '12', 'RS', '', 'Manoel Elias', '91240260', 2);
+INSERT INTO public.partner_address(id, change_date, change_user, create_date, create_user, uuid, version, city, complement, country, defaults, lat, lng, neighborhood, "number", province, reference_point, street, zip, partner_id) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aadxxxa13', 0, 'Santa Cruz do Sul', 'casa', 'Brasil', true, -30.0158674, -51.1190112, 'Centro', '12', 'RS', '', 'Manoel Elias', '91240260', 2);
 INSERT INTO public.partner_account(id, change_date, change_user, create_date, create_user, uuid, version, active, last_balance, name, partner_id) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaaaaea1', 0, 'true', 0.00, 'minha conta', 2);
 
 
