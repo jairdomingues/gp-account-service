@@ -19,8 +19,8 @@ public class PartnerAddressRequest implements Serializable {
 	private String province;
 	private String zip;
 	private String country;
-	private String lat;
-	private String lon;
+	private Float lat;
+	private Float lng;
 	private String referencePoint;
 	private Boolean defaults;
 

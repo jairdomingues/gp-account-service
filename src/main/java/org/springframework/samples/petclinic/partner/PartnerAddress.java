@@ -30,8 +30,13 @@ public class PartnerAddress extends BaseEntity {
 	private String province;
 	private String zip;
 	private String country;
-	private String lat;
-	private String lon;
+
+	@Column(precision=8, scale=2) 
+	private Float lat;
+	
+	@Column(precision=8, scale=2) 	
+	private Float lng;
+
 	private String referencePoint;
 	private Boolean defaults;
 
