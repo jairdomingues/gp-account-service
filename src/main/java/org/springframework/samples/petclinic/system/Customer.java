@@ -29,7 +29,7 @@ public class Customer extends BaseEntity {
 	private String document;
 	private String firstname;
 	private String lastname;
-	private String idUser;
+	private String userId;
 
 	@OneToOne(cascade = CascadeType.ALL, mappedBy = "walletOfCustomer")
     private WalletOfCustomer walletOfCustomer;
@@ -38,7 +38,7 @@ public class Customer extends BaseEntity {
 	private List<Account> accounts;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "idpessoa")
+	@JoinColumn(name = "customer_id")
 	private List<Address> adresses;
 
 	@Transient

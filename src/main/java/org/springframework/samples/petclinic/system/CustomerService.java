@@ -40,8 +40,8 @@ public class CustomerService {
 		return convertToCustomerResponse(customer);
 	}
 
-	public CustomerResponse findCustomerByIdUser(String idUser) {
-		Customer customer = customerRepository.findByIdUser(idUser)
+	public CustomerResponse findCustomerByIdUser(String userId) {
+		Customer customer = customerRepository.findByUserId(userId)
 			.orElse(null);
 		if (customer == null) {
 			return null;
