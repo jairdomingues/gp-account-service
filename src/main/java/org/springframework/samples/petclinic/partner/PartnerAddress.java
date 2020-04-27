@@ -41,6 +41,7 @@ public class PartnerAddress extends BaseEntity {
 	private String referencePoint;
 	private Boolean defaults;
 
+	
 	@Transient
 	public String getAddress() {
 		return this.street + ", " + this.number + ", " + this.neighborhood + ", " + this.zip + this.city + ", "

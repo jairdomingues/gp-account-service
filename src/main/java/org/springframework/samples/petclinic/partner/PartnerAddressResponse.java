@@ -24,4 +24,5 @@ public class PartnerAddressResponse implements Serializable {
 	private String referencePoint;
 	private Boolean defaults;
 
+	
 }
