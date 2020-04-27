@@ -37,7 +37,7 @@ public class ProductController {
 		return ResponseEntity.ok(productService.findProductById(productId));
 	}
 
-	@GetMapping(path = "/products/{idPartner}", produces = "application/json")
+	@GetMapping(path = "/products_partner/{idPartner}", produces = "application/json")
 	public List<ProductResponse> findAllProductsByPartner(@PathVariable("idPartner") Long partnerId) {
 		return productService.findAllProductsByPartner(partnerId);
 	}
