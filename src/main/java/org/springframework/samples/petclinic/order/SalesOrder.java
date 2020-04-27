@@ -1,6 +1,7 @@
 package org.springframework.samples.petclinic.order;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -10,6 +11,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import org.springframework.samples.petclinic.system.BaseEntity;
@@ -52,6 +55,12 @@ public class SalesOrder extends BaseEntity {
 
 	@Column(name = "partner_ref", nullable = false)
 	private Long partnerRef;
+
+	@Column(name = "crypto_ref")
+	private String cryptoRef;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	protected Date saleDate;
 
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Payment> payments;

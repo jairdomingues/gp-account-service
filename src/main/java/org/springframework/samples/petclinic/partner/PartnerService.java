@@ -43,7 +43,6 @@ public class PartnerService {
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
 		partnerRepository.delete(partner);
 	}
-	
 
 	private PartnerResponse convertToPartnerResponse(Partner partner) {
 		ModelMapper modelMapper = new ModelMapper();

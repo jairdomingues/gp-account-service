@@ -14,6 +14,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.partner.Partner;
+import org.springframework.samples.petclinic.partner.PartnerAccountService;
+import org.springframework.samples.petclinic.partner.PartnerRepository;
 import org.springframework.samples.petclinic.system.Account;
 import org.springframework.samples.petclinic.system.AccountRepository;
 import org.springframework.samples.petclinic.system.AccountService;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.samples.petclinic.partner.ReleaseHistory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,26 +63,26 @@ public class PaymentService {
 	@Autowired
 	AccountService accountService;
 
-	public String paymentSalesOrder(Long orderId, SalesOrderRequest salesOrderRequest) {
+	@Autowired
+	PartnerAccountService partnerAccountService;
+
+	@Autowired
+	PartnerRepository partnerRepository;
+
+	public ResultPaymentResponse paymentSalesOrder(Long orderId, SalesOrderRequest salesOrderRequest) {
 
 		Customer customer = customerRepository.findById(salesOrderRequest.getClientRef())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Customer is not found."));
 
+		Partner partner = partnerRepository.findById(salesOrderRequest.getPartnerRef())
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
+
+		ResultPaymentResponse resultPaymentResponse = new ResultPaymentResponse();
 		// processa os metodos do pagamento informados
 		for (PaymentRequest paymentRequest : salesOrderRequest.getPayments()) {
-			// pagamento com crypto moedas
-			if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CryptoCurrency)) {
-				for (Account account : customer.getWalletOfCustomer().getAccountsInWallet()) {
-					if (account instanceof Wallet) {
-						Wallet wallet = (Wallet) account;
-						process(wallet.getHashCard(), paymentRequest.getAmount().toString());
-						accountService.createTransactionHistory(wallet.getId(), Operation.PAYMENT,
-								TransactionType.DEBIT, Status.ACTIVE, "Pagto com crypto moeda id " + orderId,
-								paymentRequest.getAmount(), 1l);
-					}
-				}
-				// pagamento com conta digital
-			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CurrentAccount)) {
+			//pagamento com conta digital
+			if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CurrentAccount)) {
+				//debito na conta digital do customer
 				for (Account account : customer.getWalletOfCustomer().getAccountsInWallet()) {
 					if (account instanceof CurrentAccount) {
 						CurrentAccount currentAccount = (CurrentAccount) account;
@@ -87,12 +91,39 @@ public class PaymentService {
 								paymentRequest.getAmount(), 1l);
 					}
 				}
-				// pagamento com cartao de credito
+				//credito na conta digital do partner
+				partnerAccountService.createReleaseHistory(partner.getId(), ReleaseHistory.Operation.SALES,
+						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Recbto venda pedido id " + orderId,
+						paymentRequest.getAmount(), 1l);
+				
+				resultPaymentResponse.setTransactionAccount("APPROVED");
+			//pagamento com cartao de credito
 			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CreditCard)) {
 
+				
+			//pagamento com crypto moedas
+			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CryptoCurrency)) {
+				for (Account account : customer.getWalletOfCustomer().getAccountsInWallet()) {
+					if (account instanceof Wallet) {
+						Wallet wallet = (Wallet) account;
+						LoginAppResponse loginAppResponse = this.process(wallet.getHashCard(), paymentRequest.getAmount().toString());
+						//credito transferencia carteira cliente
+						accountService.createTransactionHistory(wallet.getId(), Operation.TRANSFER,
+								TransactionType.CREDIT, Status.ACTIVE, "Recbto carteira crypto id " + loginAppResponse.getResultado(),
+								paymentRequest.getAmount(), 1l);
+						//debito com pagamento crypto moeda
+						accountService.createTransactionHistory(wallet.getId(), Operation.PAYMENT,
+								TransactionType.DEBIT, Status.ACTIVE, "Pagto com crypto moeda id " + loginAppResponse.getResultado(),
+								paymentRequest.getAmount(), 1l);
+						resultPaymentResponse.setTransactionCrypto(loginAppResponse.getResultado());
+					}
+				}
 			}
 		}
-		return "Approved";
+		if ((resultPaymentResponse.getTransactionAccount()!=null&&resultPaymentResponse.getTransactionAccount().equalsIgnoreCase("APPROVED")) || resultPaymentResponse.getTransactionCrypto()!=null) {
+			resultPaymentResponse.setStatus("OK");
+		}
+		return resultPaymentResponse;
 
 	}
 

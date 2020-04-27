@@ -1,6 +1,7 @@
 package org.springframework.samples.petclinic.order;
 
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,9 +30,14 @@ public class SalesOrderService {
 		salesOrder.setStatus(SalesOrder.Status.PENDING);
 		salesOrderRepository.save(salesOrder);
 		if (salesOrderRequest.getEcommerce()) {
-			if (paymentService.paymentSalesOrder(salesOrder.getId(), salesOrderRequest).equals("Approved")) {
+			ResultPaymentResponse response = paymentService.paymentSalesOrder(salesOrder.getId(), salesOrderRequest);
+			if (response.getStatus()!=null && response.getStatus().equalsIgnoreCase("OK")) {
 				salesOrder.setStatus(SalesOrder.Status.PAID);
+				salesOrder.setSaleDate(new Date());
+				salesOrder.setCryptoRef(response.getTransactionCrypto());
 				salesOrderRepository.save(salesOrder);
+			} else {
+				throw new CustomGenericNotFoundException("Error: Payments is invalid.");
 			}
 		}
 		return convertToSalesOrderResponse(salesOrder);
