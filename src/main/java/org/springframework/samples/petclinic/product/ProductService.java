@@ -28,7 +28,6 @@ public class ProductService {
 	}
 
 	public List<ProductResponse> findAllProductsByPartner(Long partnerId) {
-		@SuppressWarnings("unchecked")
 		List<Product> products = (List<Product>) productRepository.findAllProductsByPartner(partnerId);
 		return products.stream().sorted(Comparator.comparing(Product::getCreateDate).reversed())
 				.map(this::convertToProductResponse).collect(Collectors.toList());

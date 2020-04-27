@@ -1,15 +1,14 @@
 package org.springframework.samples.petclinic.product;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.samples.petclinic.system.Account;
 
 public interface ProductRepository extends CrudRepository<Product, Long> {
 
 	@Query("SELECT p FROM Product p WHERE p.partnerId=:partnerId")
-	Account findAllProductsByPartner(@Param("partnerId") Long partnerId);
-	
-	
-}
+	List<Product> findAllProductsByPartner(@Param("partnerId") Long partnerId);
 
+}
