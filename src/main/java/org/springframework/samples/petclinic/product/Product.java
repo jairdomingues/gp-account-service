@@ -34,6 +34,7 @@ public class Product extends BaseEntity {
 	private String description;
 	private String category;
 	private String photo;
+	private Long partnerId;
 	
 	@ManyToOne
 	private Price price;

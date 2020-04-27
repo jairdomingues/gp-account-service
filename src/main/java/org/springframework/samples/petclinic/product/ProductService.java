@@ -8,8 +8,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.samples.petclinic.order.SalesOrder;
-import org.springframework.samples.petclinic.order.SalesOrderResponse;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +26,17 @@ public class ProductService {
 		return products.stream().sorted(Comparator.comparing(Product::getCreateDate).reversed())
 				.map(this::convertToProductResponse).collect(Collectors.toList());
 	}
-	
+
+	public List<ProductResponse> findAllProductsByPartner(Long partnerId) {
+		@SuppressWarnings("unchecked")
+		List<Product> products = (List<Product>) productRepository.findAllProductsByPartner(partnerId);
+		return products.stream().sorted(Comparator.comparing(Product::getCreateDate).reversed())
+				.map(this::convertToProductResponse).collect(Collectors.toList());
+	}
+
 	public ProductResponse findProductById(Long productId) {
 		Product product = productRepository.findById(productId)
-		.orElseThrow(() -> new CustomGenericNotFoundException("Error: Product is not found."));
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Product is not found."));
 		return convertToProductResponse(product);
 	}
 

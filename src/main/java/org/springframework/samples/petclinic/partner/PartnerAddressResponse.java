@@ -20,7 +20,7 @@ public class PartnerAddressResponse implements Serializable {
 	private String zip;
 	private String country;
 	private String lat;
-	private String lon;
+	private String lng;
 	private String referencePoint;
 	private Boolean defaults;
 
