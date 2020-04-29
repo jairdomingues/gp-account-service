@@ -1,6 +1,7 @@
 package org.springframework.samples.petclinic.system;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ public class CustomerResponse implements Serializable {
 	private String firstname;
 	private String lastname;
 	private String uuidUser;
-//	private List<AddressResponse> adresses;
+	private List<AddressResponse> adresses;
 	private String password;
 	private String userId;
 

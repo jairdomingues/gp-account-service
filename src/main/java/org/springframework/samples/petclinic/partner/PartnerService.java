@@ -9,6 +9,8 @@ import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
+import org.springframework.samples.petclinic.system.Customer;
+import org.springframework.samples.petclinic.system.CustomerResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,15 @@ public class PartnerService {
 		Partner partner = partnerRepository.findById(partnerId)
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
 		partnerRepository.delete(partner);
+	}
+	
+	public PartnerResponse findPartnerByIdUser(String userId) {
+		Partner partner = partnerRepository.findByUserId(userId)
+			.orElse(null);
+		if (partner == null) {
+			return null;
+		}
+		return convertToPartnerResponse(partner);
 	}
 
 	private PartnerResponse convertToPartnerResponse(Partner partner) {

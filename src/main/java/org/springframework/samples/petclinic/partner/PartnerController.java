@@ -54,4 +54,9 @@ public class PartnerController {
 		partnerService.deleteById(partnerId);
 	}
 
+	@GetMapping("/partners_user/{id}")
+	public ResponseEntity<?> findPartnerByIdUser(@PathVariable("id") String idUser) {
+		return ResponseEntity.ok(partnerService.findPartnerByIdUser(idUser));
+	}
+
 }

@@ -7,11 +7,14 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.samples.petclinic.partner.ReleaseHistory.Operation;
 import org.springframework.samples.petclinic.partner.ReleaseHistory.TransactionType;
 import org.springframework.samples.petclinic.partner.ReleaseHistory.Status;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
+import org.springframework.samples.petclinic.system.Customer;
+import org.springframework.samples.petclinic.system.CustomerResponse;
 import org.springframework.samples.petclinic.system.TransactionHistory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +58,15 @@ public class PartnerAccountService {
 
 	}
 	
+	public PartnerAccountResponse findPartnerAccountByPartner(Long partnerId) {
+		PartnerAccount partnerAccount = partnerAccountRepository.findPartnerAccountByPartner(partnerId);
+		return convertToPartnerAccountResponse(partnerAccount);
+	}
+	
+	private PartnerAccountResponse convertToPartnerAccountResponse(PartnerAccount partnerAccount) {
+		ModelMapper modelMapper = new ModelMapper();
+		return modelMapper.map(partnerAccount, PartnerAccountResponse.class);
+	}
 
 	
 }
