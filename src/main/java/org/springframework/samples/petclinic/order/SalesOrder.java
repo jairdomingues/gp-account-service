@@ -50,7 +50,7 @@ public class SalesOrder extends BaseEntity {
 	@Column(name = "status", nullable = false)
 	private Status status;
 
-	@Column(name = "client_ref", nullable = false)
+	@Column(name = "client_ref", nullable = true)
 	private Long clientRef;
 
 	@Column(name = "partner_ref", nullable = false)

@@ -120,9 +120,10 @@ public class PaymentService {
 				}
 			}
 		}
-		if ((resultPaymentResponse.getTransactionAccount()!=null&&resultPaymentResponse.getTransactionAccount().equalsIgnoreCase("APPROVED")) || resultPaymentResponse.getTransactionCrypto()!=null) {
+		//verificar aqui importnante tratar as formas
+//		if ((resultPaymentResponse.getTransactionAccount()!=null&&resultPaymentResponse.getTransactionAccount().equalsIgnoreCase("APPROVED")) || resultPaymentResponse.getTransactionCrypto()!=null) {
 			resultPaymentResponse.setStatus("OK");
-		}
+//		}
 		return resultPaymentResponse;
 
 	}
@@ -144,10 +145,13 @@ public class PaymentService {
 				.collect(Collectors.toList());
 		salesOrderRequest.setPayments(payments);
 
-		if (this.paymentSalesOrder(tokenAccountValidRequest.getOrderId(), salesOrderRequest).equals("Approved")) {
+		if (this.paymentSalesOrder(tokenAccountValidRequest.getOrderId(), salesOrderRequest).getStatus().equalsIgnoreCase("OK")) {
 			salesOrder.setStatus(SalesOrder.Status.PAID);
-			salesOrderRepository.save(salesOrder);
+		} else {
+			salesOrder.setStatus(SalesOrder.Status.CANCELED);
 		}
+		salesOrder.setClientRef(account.getCustomer().getId());
+		salesOrderRepository.save(salesOrder);
 	}
 
 	private PaymentRequest convertToPaymentRequest(Payment payment) {

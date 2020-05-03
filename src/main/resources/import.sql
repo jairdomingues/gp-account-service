@@ -26,14 +26,25 @@ INSERT INTO public.product_features(product_id, features_id) VALUES (1, 1);
 INSERT INTO public.product_gallery(product_id, gallery_id) VALUES (1, 1);
 INSERT INTO public.product_tags(product_id, tags_id) VALUES (1, 1);
 
-
 INSERT INTO public.tag(id, change_date, change_user, create_date, create_user, uuid, version, text)	VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1a', 0, 'sunt');
 INSERT INTO public.rating(id, change_date, change_user, create_date, create_user, uuid, version, rating, rating_count) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1b', 0, 3.86, 26);
 INSERT INTO public.feature(id, change_date, change_user, create_date, create_user, uuid, version, text)	VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1c', 0, 'aliquio');
-INSERT INTO public.gallery(id, change_date, change_user, create_date, create_user, uuid, version, photo) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1d', 0, '../../../../assets/images/products/speaker-1.jpg');
+INSERT INTO public.gallery(id, change_date, change_user, create_date, create_user, uuid, version, photo) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1d', 0, '../../../../assets/images/products/cabelo.jpg');
 INSERT INTO public.badge(id, change_date, change_user, create_date, create_user, uuid, version, color, text) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1x', 0, '#0D47A1', '20% TPK' );
 INSERT INTO public.price(id, change_date, change_user, create_date, create_user, uuid, version, previous, sale)	VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1h', 0, 32, 54);
-INSERT INTO public.product(id, change_date, change_user, create_date, create_user, uuid, version, _id, category, description, name, photo, subtitle, badge_id, price_id, ratings_id, partner_id) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1ssf', 0, '1234567890', 'speaker', 'Lorem ipsum dolor sit amet, dum assentior ad duo. Pri ad sapientem ocurreret incorrupte', 'Corte de cabelo', '../../../../assets/images/products/speaker-1.jpg', 'New Salão de Beleza', 1, 1, 1, 2);
+INSERT INTO public.product(id, change_date, change_user, create_date, create_user, uuid, version, _id, category, description, name, photo, subtitle, badge_id, price_id, ratings_id, partner_id) VALUES (2, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa1ssf', 0, '1234567890', 'service', 'Lorem ipsum dolor sit amet, dum assentior ad duo. Pri ad sapientem ocurreret incorrupte', 'Corte de cabelo', '../../../../assets/images/products/cabelo.jpg', 'New Salão de Beleza', 1, 1, 1, 2);
 INSERT INTO public.product_features(product_id, features_id) VALUES (2, 2);
 INSERT INTO public.product_gallery(product_id, gallery_id) VALUES (2, 2);
 INSERT INTO public.product_tags(product_id, tags_id) VALUES (2, 2);
+
+INSERT INTO public.tag(id, change_date, change_user, create_date, create_user, uuid, version, text)	VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa13', 0, 'sunt');
+INSERT INTO public.rating(id, change_date, change_user, create_date, create_user, uuid, version, rating, rating_count) VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa13', 0, 3.86, 26);
+INSERT INTO public.feature(id, change_date, change_user, create_date, create_user, uuid, version, text)	VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa3', 0, 'aliquio');
+INSERT INTO public.gallery(id, change_date, change_user, create_date, create_user, uuid, version, photo) VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa13', 0, '../../../../assets/images/products/iphone-1.jpg');
+INSERT INTO public.badge(id, change_date, change_user, create_date, create_user, uuid, version, color, text) VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa13', 0, '#0D47A1', '20% TPK' );
+INSERT INTO public.price(id, change_date, change_user, create_date, create_user, uuid, version, previous, sale)	VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa13', 0, 32, 54);
+INSERT INTO public.product(id, change_date, change_user, create_date, create_user, uuid, version, _id, category, description, name, photo, subtitle, badge_id, price_id, ratings_id, partner_id) VALUES (3, current_timestamp, 'admin', current_timestamp, 'admin', 'aaa13', 0, '1234', 'phone', 'Lorem ipsum dolor sit amet, dum assentior ad duo. Pri ad sapientem ocurreret incorrupte', 'Wireless Bluetooth V4.0 Portable Speaker with HD Sound and Bass', '../../../../assets/images/products/iphone-1.jpg', 'Estabelecimento Numero Um', 3, 3, 3, 1000);
+INSERT INTO public.product_features(product_id, features_id) VALUES (3, 3);
+INSERT INTO public.product_gallery(product_id, gallery_id) VALUES (3, 3);
+INSERT INTO public.product_tags(product_id, tags_id) VALUES (3, 3);
+
