@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.partner.Partner;
 import org.springframework.samples.petclinic.partner.PartnerAccountService;
 import org.springframework.samples.petclinic.partner.PartnerRepository;
+import org.springframework.samples.petclinic.partner.ReleaseHistory;
 import org.springframework.samples.petclinic.system.Account;
 import org.springframework.samples.petclinic.system.AccountRepository;
 import org.springframework.samples.petclinic.system.AccountService;
@@ -37,10 +38,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.samples.petclinic.partner.ReleaseHistory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.moip.API;
+import br.com.moip.Client;
+import br.com.moip.authentication.Authentication;
+import br.com.moip.authentication.BasicAuth;
+import br.com.moip.exception.UnauthorizedException;
+import br.com.moip.exception.UnexpectedException;
+import br.com.moip.exception.ValidationException;
+import br.com.moip.request.CreditCardRequest;
+import br.com.moip.request.FundingInstrumentRequest;
+import br.com.moip.request.HolderRequest;
+import br.com.moip.request.PhoneRequest;
+import br.com.moip.request.TaxDocumentRequest;
 
 @Service
 @Transactional
@@ -100,6 +113,7 @@ public class PaymentService {
 			//pagamento com cartao de credito
 			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CreditCard)) {
 
+				this.moip();
 				
 			//pagamento com crypto moedas
 			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CryptoCurrency)) {
@@ -212,5 +226,68 @@ public class PaymentService {
 //		}
 		return tokenAccount;
 	}
+	
+	
+	 // Basic Auth
+    private final String token = "A4AALFS3JAPUSDE5RJ1VTP1LENMT5KOQ";
+    private final String key = "JEW5FQ0ZV5MJUQWRLEXTYH0F843KDJOPW8XGZE0W";
+
+    // OAuth
+    private final String oauth = "QTRBQUxGUzNKQVBVU0RFNVJKMVZUUDFMRU5NVDVLT1E6SkVXNUZRMFpWNU1KVVFXUkxFWFRZSDBGODQzS0RKT1BXOFhHWkUwVw==";
+
+    private API buildSetup() {
+
+        // Set Authentication
+        //Authentication auth = new OAuth(oauth);
+        Authentication auth = new BasicAuth(token, key);
+        
+        // Set Client
+        Client client = new Client(Client.SANDBOX, auth);
+
+        // Instantiate API
+        API api = new API(client);
+
+        return api;
+    }
+    
+    private void moip() {
+    	
+    	  API api = this.buildSetup();
+    	  
+    	  try {    	  
+    	  br.com.moip.resource.Payment createdPayment = api.payment().create(new br.com.moip.request.PaymentRequest()
+    	            .orderId("ORD-XF2jair9LOEE180J")        // Order's Moip ID
+    	            .installmentCount(1)
+    	            .fundingInstrument(new FundingInstrumentRequest()
+    	                .creditCard(new CreditCardRequest()
+    	                    .number("5555666677778884")
+    	                    .cvc(123)
+    	                    .expirationMonth("06")
+    	                    .expirationYear("22")
+    	                    .holder(new HolderRequest()
+    	                        .fullname("Jose Portador da Silva")
+    	                        .birthdate("1988-10-10")
+    	                            .phone(new PhoneRequest()
+    	                            .setAreaCode("11")
+    	                            .setNumber("55667788")
+    	                        )
+    	                        .taxDocument(TaxDocumentRequest.cpf("22222222222"))
+    	                    )
+    	                    .store(true)
+    	                )
+    	            )
+    	        );
+
+    	  System.out.println(createdPayment);
+
+	  	} catch(UnauthorizedException e) {
+    	  System.out.println(e.getMessage());
+		} catch(UnexpectedException e) {
+    	  System.out.println(e.getMessage());
+		} catch(ValidationException e) {
+    	  System.out.println(e.getMessage());
+		}    	  
+    	
+    }
 
 }

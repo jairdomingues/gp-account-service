@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.samples.petclinic.partner.PartnerRepository;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,9 @@ public class ProductService {
 
 	@Autowired
 	private ProductRepository productRepository;
+
+	@Autowired
+	private PartnerRepository partnertRepository;
 
 	public List<ProductResponse> findAllProducts() {
 		List<Product> products = (List<Product>) productRepository.findAll();
@@ -41,7 +45,10 @@ public class ProductService {
 
 	private ProductResponse convertToProductResponse(Product product) {
 		ModelMapper modelMapper = new ModelMapper();
-		return modelMapper.map(product, ProductResponse.class);
+		String partnerName = partnertRepository.findById(product.getPartnerId()).get().getFirstname();
+		ProductResponse productResponse = modelMapper.map(product, ProductResponse.class);
+		productResponse.setPartnerName(partnerName);
+		return productResponse;
 	}
 
 }
