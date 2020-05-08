@@ -25,8 +25,9 @@ import lombok.ToString;
 @Table(name = "PAYMENT")
 public class Payment extends BaseEntity {
 
+	
 	public static enum PaymentMethod {
-		CryptoCurrency("Crypto Moeda"), CreditCard("Cartão de Crédito"), CurrentAccount("Conta Digital");
+		WALLET("Wallet"), CURRENT_ACCOUNT("Conta Digital"), CREDIT_CARD("Cartão de Crédito");
 
 		private final String value;
 

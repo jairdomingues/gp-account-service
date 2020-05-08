@@ -29,7 +29,7 @@ import lombok.ToString;
 public class ReleaseHistory extends BaseEntity {
 
 	public static enum Operation {
-		PAYMENT("payment"), SALES("sales"), WITHDRAW("withdraw"), DEPOSIT("deposit"), TRANSFER("transfer"), SHARE("Indicação");
+		PAYMENT("payment"), SALES("sales"), PAYMENT_FEE("Pagamento de taxa"), WITHDRAW("withdraw"), DEPOSIT("deposit"), TRANSFER("transfer"), SHARE("Indicação");
 
 		private final String value;
 

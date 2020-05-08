@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.order;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.springframework.samples.petclinic.partner.PartnerRepository;
 import org.springframework.samples.petclinic.partner.ReleaseHistory;
 import org.springframework.samples.petclinic.system.Account;
 import org.springframework.samples.petclinic.system.AccountRepository;
+import org.springframework.samples.petclinic.system.AccountResponse;
 import org.springframework.samples.petclinic.system.AccountService;
 import org.springframework.samples.petclinic.system.CurrentAccount;
 import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
@@ -60,6 +62,10 @@ import br.com.moip.request.TaxDocumentRequest;
 public class PaymentService {
 
 	private static final Log LOGGER = LogFactory.getLog(PaymentService.class);
+	
+	private static final BigDecimal PAYMENT_FEE_CRYPTO = new BigDecimal(2.5);
+	private static final BigDecimal PAYMENT_FEE_ACCOUNT = new BigDecimal(1.0);
+	private static final BigDecimal PAYMENT_FEE_CREDIT = new BigDecimal(2.5);
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -90,53 +96,93 @@ public class PaymentService {
 		Partner partner = partnerRepository.findById(salesOrderRequest.getPartnerRef())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
 
+		Boolean paymentCrypto = false;
+		Boolean paymentAccount = false;
+		
 		ResultPaymentResponse resultPaymentResponse = new ResultPaymentResponse();
 		// processa os metodos do pagamento informados
 		for (PaymentRequest paymentRequest : salesOrderRequest.getPayments()) {
 			//pagamento com conta digital
-			if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CurrentAccount)) {
+			if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CURRENT_ACCOUNT)) {
 				//debito na conta digital do customer
-				for (Account account : customer.getWalletOfCustomer().getAccountsInWallet()) {
-					if (account instanceof CurrentAccount) {
-						CurrentAccount currentAccount = (CurrentAccount) account;
-						accountService.createTransactionHistory(currentAccount.getId(), Operation.PAYMENT,
-								TransactionType.DEBIT, Status.ACTIVE, "Pagto conta digital id " + orderId,
-								paymentRequest.getAmount(), 1l);
-					}
+				
+				Account account = accountRepository.findById(paymentRequest.getId())
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Account is not found."));
+				if (account instanceof CurrentAccount) {
+					CurrentAccount currentAccount = (CurrentAccount) account;
+					accountService.createTransactionHistory(currentAccount.getId(), Operation.PAYMENT,
+							TransactionType.DEBIT, Status.ACTIVE, "Pagamento conta digital Id " + orderId,
+							paymentRequest.getAmount(), orderId);
 				}
+				
+				//calculo taxa
+				BigDecimal paymentFee = (paymentRequest.getAmount().multiply(PAYMENT_FEE_ACCOUNT)).divide(new BigDecimal(100));
+
 				//credito na conta digital do partner
 				partnerAccountService.createReleaseHistory(partner.getId(), ReleaseHistory.Operation.SALES,
-						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Recbto venda pedido id " + orderId,
-						paymentRequest.getAmount(), 1l);
+						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Recebimento venda pedido Id " + orderId,
+						paymentRequest.getAmount(), orderId);
 				
+				//credito na conta digital do partner
+				partnerAccountService.createReleaseHistory(partner.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
+						ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Pagamento taxa pedido Id " + orderId,
+						paymentFee, orderId);
+
 				resultPaymentResponse.setTransactionAccount("APPROVED");
+				paymentAccount = true;
+				
 			//pagamento com cartao de credito
-			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CreditCard)) {
+			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CREDIT_CARD)) {
 
 				this.moip();
 				
 			//pagamento com crypto moedas
-			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CryptoCurrency)) {
+			} else if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.WALLET)) {
 				for (Account account : customer.getWalletOfCustomer().getAccountsInWallet()) {
 					if (account instanceof Wallet) {
 						Wallet wallet = (Wallet) account;
 						LoginAppResponse loginAppResponse = this.process(wallet.getHashCard(), paymentRequest.getAmount().toString());
+
 						//credito transferencia carteira cliente
 						accountService.createTransactionHistory(wallet.getId(), Operation.TRANSFER,
-								TransactionType.CREDIT, Status.ACTIVE, "Recbto carteira crypto id " + loginAppResponse.getResultado(),
-								paymentRequest.getAmount(), 1l);
+								TransactionType.CREDIT, Status.ACTIVE, "Transferẽncia carteira crypto Id " + loginAppResponse.getResultado(),
+								paymentRequest.getAmount(), orderId);
+
 						//debito com pagamento crypto moeda
 						accountService.createTransactionHistory(wallet.getId(), Operation.PAYMENT,
-								TransactionType.DEBIT, Status.ACTIVE, "Pagto com crypto moeda id " + loginAppResponse.getResultado(),
-								paymentRequest.getAmount(), 1l);
+								TransactionType.DEBIT, Status.ACTIVE, "Pagamento crypto moeda Id " + loginAppResponse.getResultado(),
+								paymentRequest.getAmount(), orderId);
 						resultPaymentResponse.setTransactionCrypto(loginAppResponse.getResultado());
 					}
 				}
+				
+				//credito na conta digital do partner
+				partnerAccountService.createReleaseHistory(partner.getId(), ReleaseHistory.Operation.SALES,
+						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Venda pedido Id " + orderId,
+						paymentRequest.getAmount(), orderId);
+
+				//calculo taxa
+				BigDecimal paymentFee = (paymentRequest.getAmount().multiply(PAYMENT_FEE_CRYPTO)).divide(new BigDecimal(100));
+				
+				//debito valor liquido na conta digital do partner
+				partnerAccountService.createReleaseHistory(partner.getId(), ReleaseHistory.Operation.TRANSFER,
+						ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Transferẽncia venda pedido Id " + orderId,
+						paymentRequest.getAmount().subtract(paymentFee), orderId);
+				
+				//debito taxas na conta digital do partner
+				partnerAccountService.createReleaseHistory(partner.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
+						ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Pagamento taxa pedido Id " + orderId, paymentFee, orderId);
+				
+				paymentCrypto = true;
+
 			}
 		}
 		//verificar aqui importnante tratar as formas
 //		if ((resultPaymentResponse.getTransactionAccount()!=null&&resultPaymentResponse.getTransactionAccount().equalsIgnoreCase("APPROVED")) || resultPaymentResponse.getTransactionCrypto()!=null) {
+		if (paymentAccount) {
 			resultPaymentResponse.setStatus("OK");
+		}
+		
 //		}
 		return resultPaymentResponse;
 
@@ -219,7 +265,7 @@ public class PaymentService {
 	private TokenAccount updateToken(String uuid) {
 		TokenAccount tokenAccount = tokenAccountRepository.findByUuidValid(uuid)
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Token is invalid."));
-		tokenAccount.setValid(false);
+		tokenAccount.setValid(true);
 		tokenAccountRepository.save(tokenAccount);
 //		if (tokenAccount.getExpired()) {
 //			throw new CustomGenericNotFoundException("Error: Token is expired.");

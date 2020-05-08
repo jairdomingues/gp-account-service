@@ -31,6 +31,21 @@ import lombok.ToString;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Account extends BaseEntity {
 
+
+	public static enum TypeAccount {
+		WALLET("Wallet"), CURRENT_ACCOUNT("Conta Digital"), CREDIT_CARD("Cartão de Crédito");
+
+		private final String value;
+
+		private TypeAccount(final String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+	
 	private String name;
 	private Boolean active;
 
@@ -69,5 +84,17 @@ public class Account extends BaseEntity {
 		return creditValue.subtract(debitValue);
 	}
 
+	@Transient
+	public TypeAccount getTypeAccount() {
+		TypeAccount typeAccount = null;
+		if (this instanceof CurrentAccount) {
+			typeAccount = TypeAccount.CURRENT_ACCOUNT;
+		} else if (this instanceof Wallet) {
+			typeAccount = TypeAccount.WALLET;
+		} else if (this instanceof CreditCard) {
+			typeAccount = TypeAccount.CREDIT_CARD;
+		}
+		return typeAccount;
+	}
 }
 
