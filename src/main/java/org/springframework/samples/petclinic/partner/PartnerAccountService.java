@@ -9,13 +9,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.samples.petclinic.partner.ReleaseHistory.Operation;
-import org.springframework.samples.petclinic.partner.ReleaseHistory.TransactionType;
-import org.springframework.samples.petclinic.partner.ReleaseHistory.Status;
-import org.springframework.samples.petclinic.system.CustomGenericNotFoundException;
-import org.springframework.samples.petclinic.system.Customer;
-import org.springframework.samples.petclinic.system.CustomerResponse;
-import org.springframework.samples.petclinic.system.TransactionHistory;
+import org.springframework.samples.petclinic.partner.model.Partner;
+import org.springframework.samples.petclinic.partner.model.ReleaseHistory;
+import org.springframework.samples.petclinic.partner.model.ReleaseHistory.Operation;
+import org.springframework.samples.petclinic.partner.model.ReleaseHistory.Status;
+import org.springframework.samples.petclinic.partner.model.ReleaseHistory.TransactionType;
+import org.springframework.samples.petclinic.partner.repository.PartnerAccountRepository;
+import org.springframework.samples.petclinic.partner.repository.PartnerRepository;
+import org.springframework.samples.petclinic.partner.response.PartnerAccountResponse;
+import org.springframework.samples.petclinic.system.exception.CustomGenericNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +28,24 @@ public class PartnerAccountService {
 	private static final Log LOGGER = LogFactory.getLog(PartnerAccountService.class);
 
 	@Autowired
+	PartnerRepository partnerRepository;
+
+	@Autowired
 	PartnerAccountRepository partnerAccountRepository;
-	
+
+	public PartnerAccount createPartnerAccount(Long partnerId) {
+		
+		Partner partner = partnerRepository.findById(partnerId)
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
+		
+		PartnerAccount partnerAccount = new PartnerAccount();
+		partnerAccount.setActive(true);
+		partnerAccount.setName(partner.getFantasia());
+		partnerAccount.setPartner(partner);
+		partnerAccountRepository.save(partnerAccount);
+		return partnerAccount;
+	}
+
 	public void createReleaseHistory(Long idAccount, Operation operation, TransactionType transactionType, Status status,
 			String history, BigDecimal amount, Long orderId) {
 

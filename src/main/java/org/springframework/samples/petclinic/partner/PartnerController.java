@@ -10,12 +10,17 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.partner.request.CreatePlanRequest;
+import org.springframework.samples.petclinic.partner.request.PartnerRequest;
+import org.springframework.samples.petclinic.partner.response.PartnerResponse;
+import org.springframework.samples.petclinic.partner.response.PlanResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,4 +64,20 @@ public class PartnerController {
 		return ResponseEntity.ok(partnerService.findPartnerByIdUser(idUser));
 	}
 
+	@GetMapping("/import_partner")
+	public ResponseEntity<?> importPartner() {
+		partnerService.importPartner();
+		return ResponseEntity.ok("Importado com sucesso");
+	}
+
+	@PutMapping("{id}/plans/{planId}")
+	public void createPlan(@Valid @RequestBody CreatePlanRequest createPlanReques, @PathVariable(name = "id") Long partnerId, @PathVariable(name = "planId") Long planId) {
+		partnerService.createPlan(createPlanReques, partnerId, planId);
+	}
+
+	@GetMapping(path = "/plans", produces = "application/json")
+	public List<PlanResponse> findAllPlansActive() {
+		return partnerService.findAllPlansActive();
+	}
+	
 }

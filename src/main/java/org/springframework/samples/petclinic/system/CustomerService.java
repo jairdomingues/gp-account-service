@@ -6,8 +6,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.samples.petclinic.order.SalesOrder;
-import org.springframework.samples.petclinic.order.SalesOrderResponse;
+import org.springframework.samples.petclinic.system.exception.CustomGenericNotFoundException;
+import org.springframework.samples.petclinic.system.model.Customer;
+import org.springframework.samples.petclinic.system.model.WalletOfCustomer;
+import org.springframework.samples.petclinic.system.repository.CustomerRepository;
+import org.springframework.samples.petclinic.system.request.CustomerRequest;
+import org.springframework.samples.petclinic.system.response.CustomerResponse;
 import org.springframework.stereotype.Service;
 
 @Service

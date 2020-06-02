@@ -11,7 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.order.PaymentService;
-import org.springframework.samples.petclinic.system.TokenAccount.Type;
+import org.springframework.samples.petclinic.system.model.TokenAccount.Type;
+import org.springframework.samples.petclinic.system.request.CreditCardRequest;
+import org.springframework.samples.petclinic.system.request.CurrentAccountRequest;
+import org.springframework.samples.petclinic.system.request.DepositRequest;
+import org.springframework.samples.petclinic.system.request.TokenAccountRequest;
+import org.springframework.samples.petclinic.system.request.TokenAccountValidRequest;
+import org.springframework.samples.petclinic.system.request.TransactionHistoryRequest;
+import org.springframework.samples.petclinic.system.request.TransferRequest;
+import org.springframework.samples.petclinic.system.request.WalletRequest;
+import org.springframework.samples.petclinic.system.response.AccountResponse;
+import org.springframework.samples.petclinic.system.response.MessageResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -67,7 +77,6 @@ public class AccountController {
 	@PostMapping(path = "/valid_token", produces = "application/json", consumes = "application/json")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<?> validToken(@Valid @RequestBody TokenAccountValidRequest tokenAccountValidRequest) {
-		System.out.println("entrei 1");
 		paymentService.validTokenAccount(tokenAccountValidRequest);
 		return ResponseEntity.ok(new MessageResponse("Payment approved!"));
 	}
@@ -77,6 +86,18 @@ public class AccountController {
 	public ResponseEntity<?> createTransactionHistory(@Valid @RequestBody TransactionHistoryRequest transactionHistoryRequest) {
 		accountService.createTransactionHistory(transactionHistoryRequest);
 		return ResponseEntity.ok(new MessageResponse("Transaction OK."));
+	}
+
+	@PostMapping(path = "/transfer", produces = "application/json", consumes = "application/json")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<?> createTransfer(@Valid @RequestBody TransferRequest transferRequest) {
+		return ResponseEntity.ok(accountService.createTransfer(transferRequest));
+	}
+
+	@PostMapping(path = "/deposit", produces = "application/json", consumes = "application/json")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<?> createDeposit(@Valid @RequestBody DepositRequest depositRequest) {
+		return ResponseEntity.ok(accountService.createDeposit(depositRequest));
 	}
 
 	@GetMapping(path = "/share/{id}", produces = "application/json")
@@ -97,6 +118,11 @@ public class AccountController {
 		return accountService.findAllByCustomer(customerId);
 	}
 	
+	@GetMapping(path = "/cpf_accounts/{cpf}", produces = "application/json")
+	public List<AccountResponse> findAllByCpf(@PathVariable(name = "cpf") String cpf) {
+		return accountService.findAllByCpf(cpf);
+	}
+
 	@DeleteMapping("/accounts/{id}")
 	public void delete(@PathVariable(name = "id") Long idAccount) {
 		accountService.deleteById(idAccount);

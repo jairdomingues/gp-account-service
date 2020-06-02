@@ -2,34 +2,44 @@ package org.springframework.samples.petclinic.system;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.samples.petclinic.order.SalesOrder;
-import org.springframework.samples.petclinic.order.SalesOrderRepository;
-import org.springframework.samples.petclinic.system.TransactionHistory.Operation;
-import org.springframework.samples.petclinic.system.TransactionHistory.Status;
-import org.springframework.samples.petclinic.system.TransactionHistory.TransactionType;
+import org.springframework.samples.petclinic.order.PaymentService;
+import org.springframework.samples.petclinic.order.request.PaymentRequest;
+import org.springframework.samples.petclinic.system.exception.CustomGenericNotFoundException;
+import org.springframework.samples.petclinic.system.model.Account;
+import org.springframework.samples.petclinic.system.model.CreditCard;
+import org.springframework.samples.petclinic.system.model.CurrentAccount;
+import org.springframework.samples.petclinic.system.model.Customer;
+import org.springframework.samples.petclinic.system.model.TokenAccount;
+import org.springframework.samples.petclinic.system.model.TokenAccount.Type;
+import org.springframework.samples.petclinic.system.model.TransactionHistory;
+import org.springframework.samples.petclinic.system.model.TransactionHistory.Operation;
+import org.springframework.samples.petclinic.system.model.TransactionHistory.Status;
+import org.springframework.samples.petclinic.system.model.TransactionHistory.TransactionType;
+import org.springframework.samples.petclinic.system.model.Wallet;
+import org.springframework.samples.petclinic.system.repository.AccountRepository;
+import org.springframework.samples.petclinic.system.repository.CustomerRepository;
+import org.springframework.samples.petclinic.system.repository.TokenAccountRepository;
+import org.springframework.samples.petclinic.system.request.CreditCardRequest;
+import org.springframework.samples.petclinic.system.request.CurrentAccountRequest;
+import org.springframework.samples.petclinic.system.request.DepositRequest;
+import org.springframework.samples.petclinic.system.request.TokenAccountRequest;
+import org.springframework.samples.petclinic.system.request.TransactionHistoryRequest;
+import org.springframework.samples.petclinic.system.request.TransferRequest;
+import org.springframework.samples.petclinic.system.request.WalletRequest;
+import org.springframework.samples.petclinic.system.response.AccountResponse;
+import org.springframework.samples.petclinic.system.response.TokenAccountResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Transactional
@@ -47,7 +57,7 @@ public class AccountService {
 	private TokenAccountRepository tokenAccountRepository;
 
 	@Autowired
-	private SalesOrderRepository salesOrderRepository;
+	private PaymentService paymentService;
 
 	public List<AccountResponse> findAllAccounts() {
 		List<Account> accounts = (List<Account>) accountRepository.findAll();
@@ -57,6 +67,12 @@ public class AccountService {
 
 	public List<AccountResponse> findAllByCustomer(Long customerId) {
 		List<Account> accounts = (List<Account>) accountRepository.findAllByCustomer(customerId);
+		return accounts.stream().sorted(Comparator.comparing(Account::getCreateDate).reversed())
+				.map(this::convertToAccountResponse).collect(Collectors.toList());
+	}
+
+	public List<AccountResponse> findAllByCpf(String cpf) {
+		List<Account> accounts = (List<Account>) accountRepository.findAllByCpf(cpf);
 		return accounts.stream().sorted(Comparator.comparing(Account::getCreateDate).reversed())
 				.map(this::convertToAccountResponse).collect(Collectors.toList());
 	}
@@ -135,16 +151,16 @@ public class AccountService {
 		Account account = accountRepository.findById(tokenAccountRequest.getAccountId())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Account is not found."));
 
-		
-		if (tokenAccountRequest.getType().equals(TokenAccount.Type.WALLET)) {
+		if (!tokenAccountRequest.getType().equals(TokenAccount.Type.SHARE)) {
 			//verificar a password para geração de token de WALLET 
 			if (!account.getWalletHolder().getPassword().equals(tokenAccountRequest.getPassword())) {
 				throw new CustomGenericNotFoundException("Error: Password is invalid.");
 			}
 		}
+		
 		TokenAccount tokenAccount = new TokenAccount();
 		tokenAccount.setAccount(account);
-		tokenAccount.setType(tokenAccountRequest.getType().equals(TokenAccount.Type.WALLET)?TokenAccount.Type.WALLET:TokenAccount.Type.SHARE);
+		tokenAccount.setType(tokenAccountRequest.getType());
 		tokenAccount.setValid(true);
 		tokenAccountRepository.save(tokenAccount);
 		return convertToTokenAccountResponse(tokenAccount);
@@ -193,6 +209,38 @@ public class AccountService {
 
 	}
 
+	public TokenAccountResponse createTransfer(TransferRequest transferRequest) {
+
+		TokenAccount tokenAccount = this.updateToken(transferRequest.getUuid());
+
+		BigDecimal debitValue = transferRequest.getPayments().stream().map((e) -> e.getAmount()).reduce((sum, e) -> sum.add(e)).get();
+
+		this.createTransactionHistory(tokenAccount.getAccount().getId(), Operation.TRANSFER,
+				TransactionType.DEBIT, Status.ACTIVE, "Pagamento transferência id "+tokenAccount.getId(),
+				debitValue, tokenAccount.getId());
+		
+		for (PaymentRequest paymentRequest : transferRequest.getPayments()) {
+			
+			Account account = accountRepository.findById(paymentRequest.getId())
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Account is not found."));
+			
+			this.createTransactionHistory(paymentRequest.getId(), Operation.TRANSFER,
+					TransactionType.CREDIT, Status.ACTIVE, "Recebimento transferência id "+tokenAccount.getId(),
+					debitValue, tokenAccount.getId());
+		
+		}
+		
+		TokenAccountResponse tokenAccountResponse = new TokenAccountResponse();
+		tokenAccountResponse.setType(Type.TRANSFER);
+		tokenAccountResponse.setUuid(tokenAccount.getUuid());
+		return tokenAccountResponse;
+	}
+
+	public TokenAccountResponse createDeposit(DepositRequest depositRequest) {
+		paymentService.moipBoleto();
+		return new TokenAccountResponse();
+	}
+	
 	private CurrentAccount convertToCurrentAccount(CurrentAccountRequest accountRequest) {
 		ModelMapper modelMapper = new ModelMapper();
 		return modelMapper.map(accountRequest, CurrentAccount.class);
@@ -217,5 +265,19 @@ public class AccountService {
 		ModelMapper modelMapper = new ModelMapper();
 		return modelMapper.map(account, AccountResponse.class);
 	}
+
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public TokenAccount updateToken(String uuid) {
+		TokenAccount tokenAccount = tokenAccountRepository.findByUuidValid(uuid)
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Token is invalid."));
+		tokenAccount.setValid(true);
+		tokenAccountRepository.save(tokenAccount);
+//		if (tokenAccount.getExpired()) {
+//			throw new CustomGenericNotFoundException("Error: Token is expired.");
+//		}
+		return tokenAccount;
+	}
+	
+	
 
 }

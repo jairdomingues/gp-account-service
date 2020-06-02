@@ -164,6 +164,16 @@
 		    <version>2.3.6</version>
 		</dependency>
     
+<dependency>
+    <groupId>br.com.moip</groupId>
+    <artifactId>java-sdk</artifactId>
+    <version>4.5.1</version>
+</dependency>    
+    
+<dependency>
+   	<groupId>com.google.cloud</groupId>
+   	<artifactId>google-cloud-firestore</artifactId>
+</dependency>
     
   </dependencies>
 
