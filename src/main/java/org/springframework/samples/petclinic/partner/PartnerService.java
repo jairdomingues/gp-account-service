@@ -182,7 +182,7 @@ public class PartnerService {
 
 	private AddressRequest callAddress(PartnerAddress pa) {
 //		final String uri = "http://localhost:8089/geocodes";
-		final String uri = "https://gp-latlong-service.uc.r.appspot.com/geocodes";
+		final String uri = "https://gp-latlong.wl.r.appspot.com/geocodes";
 		
 		List<Address> adresses = new ArrayList<Address>();
 
