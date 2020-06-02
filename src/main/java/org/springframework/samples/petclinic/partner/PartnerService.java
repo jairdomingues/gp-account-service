@@ -181,8 +181,9 @@ public class PartnerService {
 	}
 
 	private AddressRequest callAddress(PartnerAddress pa) {
-		final String uri = "http://localhost:8089/geocodes";
-
+//		final String uri = "http://localhost:8089/geocodes";
+		final String uri = "https://gp-latlong-service.uc.r.appspot.com/geocodes";
+		
 		List<Address> adresses = new ArrayList<Address>();
 
 		AddressRequest ar = new AddressRequest();
@@ -208,7 +209,9 @@ public class PartnerService {
 	}
 
 	private String callUser(Partners p) {
-		final String uri = "http://localhost:8088/api/auth/";
+//		final String uri = "http://localhost:8088/api/auth/";
+		final String uri = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
+
 		SignupRequest signupRequest = new SignupRequest();
 		signupRequest.setUsername(p.getFantasia());
 		signupRequest.setEmail(p.getEmail());
