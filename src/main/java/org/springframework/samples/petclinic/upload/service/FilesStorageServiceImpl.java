@@ -53,39 +53,6 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 
 	private void storage(MultipartFile file, Long productId) throws IOException {
 
-		InputStream is = null;
-		try {
-			is = getClass().getResourceAsStream("/green-pay-v1-63f74ec603a0.json");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		StorageOptions storageOptions = StorageOptions.newBuilder().setProjectId("green-pay-v1 ")
-				.setCredentials(GoogleCredentials.fromStream(is)).build();
-		Storage storage = storageOptions.getService();
-
-		try {
-			checkFileExtension(file.getName());
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}
-		DateTimeFormatter dtf = DateTimeFormat.forPattern("-YYYY-MM-dd-HHmmssSSS");
-		DateTime dt = DateTime.now(DateTimeZone.UTC);
-		String dtString = dt.toString(dtf);
-		final String fileName = file.getName() + dtString;
-
-		@SuppressWarnings("deprecation")
-		BlobInfo blobInfo = storage.create(
-				BlobInfo.newBuilder("green-pay-v1.appspot.com", fileName).setContentType("image/png")
-						// Modify access list to allow all users with link to read file
-						.setAcl(new ArrayList<>(Arrays.asList(Acl.of(User.ofAllUsers(), Role.READER)))).build(),
-				file.getInputStream());
-
-		System.out.println(blobInfo.getMediaLink() + " / " + productId);
-		UpdatePhotoResponse updatePhotoResponse = new UpdatePhotoResponse();
-		updatePhotoResponse.setProductId(productId);
-		updatePhotoResponse.setUrlPhoto(blobInfo.getMediaLink());
-		this.updateImage(updatePhotoResponse);
 	}
 
 	private void checkFileExtension(String fileName) throws ServletException {
