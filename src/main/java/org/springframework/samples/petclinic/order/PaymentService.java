@@ -306,7 +306,7 @@ public class PaymentService {
 	public void accountWireCard(Partner partner, Plan plan, PartnerAccount partnerAccount,
 			CreatePlanRequest createPlanReques) {
 
-		// criar wirecard
+		// criar wirecard para conta transparente do partner
 		AccountWireCardRequest accountWireCardRequest = new AccountWireCardRequest();
 		accountWireCardRequest.setType(Type.MEMBER_FEE);
 		accountWireCardRequest.setEmail(createPlanReques.getContact().getEmail());
@@ -324,11 +324,13 @@ public class PaymentService {
 		accountWireCardRequest.setAreaCode("51");
 		accountWireCardRequest.setNumber("99090909");
 		accountWireCardRequest.setProduct(plan.getName());
-		// transforma em centavos
+		// transforma em centavos para api da wirecard
 		String value = plan.getMemberFee().toString().replace(".", "");
 		accountWireCardRequest.setValue(value);
-
+		//criar conta transparente para wirecard
 		br.com.moip.resource.Account account = this.createAccountWireCard(accountWireCardRequest);
+
+		//salvar dados da conta transparente criada para wirecard
 		AccountWireCard accountWireCard = new AccountWireCard();
 		accountWireCard.set_id(account.getId());
 		accountWireCard.setAccessToken(account.getAccessToken());
@@ -338,6 +340,7 @@ public class PaymentService {
 		accountWireCard.setTransparentAccount(true);
 		accountWireCardRepository.save(accountWireCard);
 
+		//efetuar o pagamento cartão de crédito
 		accountWireCardRequest.setMoipAccount(account.getId());
 		PaymentWireCard paymentWireCard = this.moipCard(accountWireCardRequest, createPlanReques.getCard());
 		paymentWireCard.setPartner(partner);

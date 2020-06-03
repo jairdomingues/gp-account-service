@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "green-pay-v1",
+  "private_key_id": "63f74ec603a02bd5b2ae309787f7e076141d2ead",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCkqI+SNrRfgDX1\nPVTBNzqcLDnrsY8LeiUPOGquhyttT4nGStE3ebuLtiEVo5bu43YFFv9ui/YwBQ0/\ncxkExi+xkNwVwTlNs7LkN252JT0iwLPnOZ9LGFhpx9MTNWks+0raBMwrTHiBi9Cr\ncj5Y6hmSzwy2K+4NsfJcOf8akigXMqMYf5HuQuSVk5yXWcVSdh83Yd1/h0wjgVOj\nck/DsAj8Cv0JXUcrMyw3Onpt30JBXaQKupjD8bT5u5IAvTwodsO01cqTds78neQ1\nTWz7Kng/HCqZfpLgKD/7bI7rgGTPMVCC3Z5V+yrMX6jXQY2GP963TQ46n+5/vxzW\nfANajfo7AgMBAAECggEAB87PvWDcsr6d+xAPyc24ThmGxuy3hMAjq7zCykiHQFAK\nOh3oHSz86LDCkYfIAMdGcb1XxW0w8lv69yxFCRtAvbcfHeT4tlI0GcBLJk0Oa2x0\nhh1kYVI5Nw2OWRXU8+4X7DitWcxEK+3Dqlg+KUczM+lKMq/ol5D9lhlQmyOdGmRt\nIVsbn2jssKEjX7N7ydnwjk98Dgi3/qNPO7EKyy7jEoL9UvBUnhatAGIms6VaSAQS\nizP/Sh0VcqhwOJ4ylICWlQ0ONkUTdnDhsxxz4JqD2WZ2/FkNxunV8BiuVCf25TPO\nNy2tkNoJktklchPXCtNU7EkFMdphRQCJ7Bld81ZamQKBgQDayxZaTn0z5bxvZrMz\nUP/YWV9LscPgc5SXwC4WWruGYKr1ds1i+OBVUUOf8cSc6qVk821njSvpNBVZgSOe\n8Ag2DeT8/nrFCv/BupoPTMVaJb/MNTj6LiBCDmE+71qqqLCBQZMCb3IP4LH03VJ/\nFWf/eJ1vR0ku0vBjkZ2+RXNbNQKBgQDAqMZcIR0jh5KHYOhncbWQTKOPEe9oVdWR\nte+/eTy0y+rgLL7F3/MxQspc53bU5RC6YvYbUe0gOsx0G3M81jJ+XBcBGH1BXkym\n/zSBpdmy0ucWTMODVcYFLkNgSBMiGKk45Bq92eHYUIfsOKdu/JQfwAW/Y9iJhZyl\nD8Qm+/s9rwKBgAsAEPSjY5obX9j+Ad5/oQ1gmPD2VBHR3dOvXuHS2ADOlWnX+kWS\nm7zOZCcDgc4d4gjsUEDXkTCdZMFmQ8M28EK/ehbaOJP1lJxJ5HsGchmxMi5zMpUp\ngoevr2X5pMZVyuIEyP5jWgnAU1IrWn13Nw5aIxg4Lk7DXkCzTooFdeJNAoGBALiM\nc4apCbqREWGxCK6ek+eoIjzYV1bAchZkC0aFIgumElWvRwdRISoc6q/X4VLKIh4I\n0esVrWnkKRlHejnajP/Rww9/n+xQImkNqgRPFJxhvo7z9Y0HSuqHiG7gW8Obj+45\nQwx9fAO0EJ/NHUYJmPJZBKhzQmdpn8XVtnYJhn9tAoGBAMW6U366HvirUV4OMUpk\nYVY5e4hEYdHe/2PzezFbnAHsNtJQYSKbjk8BP9iWnEaNehQk5ydFR3OPnIF3uanp\nYfj31l6qhYnPQo5OZ95TYPDxnhHo6V5Yz5cPKNp0HVzRf/zJoKLrKJ+6tUGTtRpg\nKQaiw0KE8Nw0uzd6UR1lCrLz\n-----END PRIVATE KEY-----\n",
+  "client_email": "green-pay-v1@appspot.gserviceaccount.com",
+  "client_id": "109060153447833328208",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/green-pay-v1%40appspot.gserviceaccount.com"
+}
