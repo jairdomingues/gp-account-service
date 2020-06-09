@@ -35,6 +35,7 @@ import br.com.greenpay.core.product.response.UpdatePhotoResponse;
 @Validated
 @CrossOrigin
 public class ProductController {
+	
 
 	private static final Log LOGGER = LogFactory.getLog(ProductController.class);
 
