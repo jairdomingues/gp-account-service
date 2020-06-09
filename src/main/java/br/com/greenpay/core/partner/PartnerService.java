@@ -48,7 +48,13 @@ public class PartnerService {
 
 	private static final Log LOGGER = LogFactory.getLog(PartnerService.class);
 
+	//TODO Colocar estes endpoints dentro de arquivos de configuração
 	private static final String API_KEY = "b47301eD474e48c9428f4Rc";
+	private static final String TREEP_URI = "https://tpkmarket.eybpro.com/api/get_clientes.php?apikey=";
+//	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
+	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
+//	private static final String USER_URI = "http://localhost:8088/api/auth/";
+	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
 
 	@Autowired
 	private PartnerRepository partnerRepository;
@@ -120,7 +126,7 @@ public class PartnerService {
 
 	public void importPartner() {
 		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-		final String url = "https://tpkmarket.eybpro.com/api/get_clientes.php?apikey=" + API_KEY;
+		final String url = TREEP_URI + API_KEY;
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
@@ -182,11 +188,8 @@ public class PartnerService {
 	}
 
 	private AddressRequest callAddress(PartnerAddress pa) {
-		final String uri = "http://localhost:8089/geocodes";
-//		final String uri = "https://gp-latlong.wl.r.appspot.com/geocodes";
-		
-		List<Address> adresses = new ArrayList<Address>();
 
+		List<Address> adresses = new ArrayList<Address>();
 		AddressRequest ar = new AddressRequest();
 		Address a = new Address();
 		a.setCity(pa.getCity());
@@ -204,14 +207,12 @@ public class PartnerService {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<AddressRequest> entity = new HttpEntity<AddressRequest>(ar, headers);
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<AddressRequest> result = restTemplate.postForEntity(uri, entity, AddressRequest.class);
+		ResponseEntity<AddressRequest> result = restTemplate.postForEntity(GEOCODES_URI, entity, AddressRequest.class);
 
 		return result.getBody();
 	}
 
 	private String callUser(Partners p) {
-		final String uri = "http://localhost:8088/api/auth/";
-//		final String uri = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
 
 		SignupRequest signupRequest = new SignupRequest();
 		signupRequest.setUsername(p.getFantasia());
@@ -226,7 +227,7 @@ public class PartnerService {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<SignupRequest> entity = new HttpEntity<SignupRequest>(signupRequest, headers);
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> result = restTemplate.postForEntity(uri, entity, String.class);
+		ResponseEntity<String> result = restTemplate.postForEntity(USER_URI, entity, String.class);
 		return result.getBody();
 	}
 
