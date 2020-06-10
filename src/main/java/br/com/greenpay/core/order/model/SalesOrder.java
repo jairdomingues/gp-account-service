@@ -9,6 +9,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -65,7 +68,10 @@ public class SalesOrder extends BaseEntity {
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Payment> payments;
 	
-	@OneToMany(cascade = CascadeType.ALL)
+	@ManyToMany
+	@JoinTable(
+	    joinColumns = @JoinColumn( name="order_id"),
+	    inverseJoinColumns = @JoinColumn( name="product_id"))
 	private List<Product> products;
 
 	@Transient

@@ -35,8 +35,8 @@ public class PartnerAccount extends BaseEntity {
 	private Boolean active;
 	private BigDecimal lastBalance;
 
-	@ManyToOne
-	private Partner partner;
+//	@ManyToOne
+//	private Partner partner;
 
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "partner_id")

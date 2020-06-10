@@ -42,7 +42,7 @@ public class PartnerAccountService {
 		PartnerAccount partnerAccount = new PartnerAccount();
 		partnerAccount.setActive(true);
 		partnerAccount.setName(partner.getFantasia());
-		partnerAccount.setPartner(partner);
+//		partnerAccount.setPartner(partner);
 		partnerAccountRepository.save(partnerAccount);
 		return partnerAccount;
 	}
@@ -78,7 +78,9 @@ public class PartnerAccountService {
 	}
 	
 	public PartnerAccountResponse findPartnerAccountByPartner(Long partnerId) {
-		PartnerAccount partnerAccount = partnerAccountRepository.findPartnerAccountByPartner(partnerId);
+		Partner partner = partnerRepository.findById(partnerId)
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
+		PartnerAccount partnerAccount = partner.getAccount();
 		return convertToPartnerAccountResponse(partnerAccount);
 	}
 	

@@ -51,10 +51,10 @@ public class PartnerService {
 	//TODO Colocar estes endpoints dentro de arquivos de configuração
 	private static final String API_KEY = "b47301eD474e48c9428f4Rc";
 	private static final String TREEP_URI = "https://tpkmarket.eybpro.com/api/get_clientes.php?apikey=";
-//	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
-	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
-//	private static final String USER_URI = "http://localhost:8088/api/auth/";
-	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
+	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
+//	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
+	private static final String USER_URI = "http://localhost:8088/api/auth/";
+//	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
 
 	@Autowired
 	private PartnerRepository partnerRepository;
@@ -115,7 +115,8 @@ public class PartnerService {
 
 		partner.setPlan(plan);
 		PartnerAccount partnerAccount = partnerAccountService.createPartnerAccount(partnerId);
-
+		partner.setAccount(partnerAccount);
+		partnerRepository.save(partner);
 		paymentService.accountWireCard(partner, plan, partnerAccount, createPlanRequest);
 	}
 
@@ -124,7 +125,7 @@ public class PartnerService {
 		return plans.stream().filter(x -> x.getActive()).map(this::convertToPlanResponse).collect(Collectors.toList());
 	}
 
-	public void importPartner() {
+	public String importPartner() {
 		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
 		final String url = TREEP_URI + API_KEY;
 		HttpHeaders headers = new HttpHeaders();
@@ -133,11 +134,16 @@ public class PartnerService {
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<Partners[]> response = restTemplate.getForEntity(url, Partners[].class);
 		Partners[] partners = response.getBody();
-
+		Integer size = 0;
+		
 		for (Partners p : partners) {
 
 			// create user
 			String userId = this.callUser(p);
+			//retorna false caso ja tenho um email cadadastrado, senão retorna o ID do user
+			if (userId.equalsIgnoreCase("exists")) {
+				continue;
+			}
 
 			Date data = null;
 			try {
@@ -184,7 +190,10 @@ public class PartnerService {
 					.orElseThrow(() -> new CustomGenericNotFoundException("Error: Activity Branch is not found."));
 			partner.setActivityBranch(activityBranch);
 			partnerRepository.save(partner);
+			size++;
 		}
+		String total = size.toString()+"/"+new Integer(partners.length).toString();
+		return total;
 	}
 
 	private AddressRequest callAddress(PartnerAddress pa) {
@@ -227,7 +236,7 @@ public class PartnerService {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<SignupRequest> entity = new HttpEntity<SignupRequest>(signupRequest, headers);
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> result = restTemplate.postForEntity(USER_URI, entity, String.class);
+		ResponseEntity<String> result = restTemplate.postForEntity(USER_URI+"import", entity, String.class);
 		return result.getBody();
 	}
 

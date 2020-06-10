@@ -135,9 +135,11 @@ public class PaymentService {
 
 	public ResultPaymentResponse paymentSalesOrder(Long orderId, SalesOrderRequest salesOrderRequest) {
 
+		// identifica cliente do pedido
 		Customer customer = customerRepository.findById(salesOrderRequest.getClientRef())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Customer is not found."));
 
+		//identifica parceiro do pedido
 		Partner partner = partnerRepository.findById(salesOrderRequest.getPartnerRef())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
 
@@ -146,12 +148,14 @@ public class PaymentService {
 		Boolean paymentCredit = false;
 
 		ResultPaymentResponse resultPaymentResponse = new ResultPaymentResponse();
+		
 		// processa os metodos do pagamento informados
 		for (PaymentRequest paymentRequest : salesOrderRequest.getPayments()) {
+
 			// pagamento com conta digital
 			if (paymentRequest.getPaymentMethod().equals(Payment.PaymentMethod.CURRENT_ACCOUNT)) {
-				// debito na conta digital do customer
 
+				// debito na conta digital do customer
 				Account account = accountRepository.findById(paymentRequest.getId())
 						.orElseThrow(() -> new CustomGenericNotFoundException("Error: Account is not found."));
 				if (account instanceof CurrentAccount) {
@@ -161,19 +165,19 @@ public class PaymentService {
 							paymentRequest.getAmount(), orderId);
 				}
 
-				// calculo taxa
+				// calculo taxa paga para o app 
 				BigDecimal paymentFee = (paymentRequest.getAmount().multiply(PAYMENT_FEE_ACCOUNT))
 						.divide(new BigDecimal(100));
 
-				PartnerAccount partnerAccount = partnerAccountRepository
-						.findPartnerAccountByPartner(salesOrderRequest.getPartnerRef());
-
+				// recupera conta do parceiro
+				PartnerAccount partnerAccount = partner.getAccount();
+				
 				// credito na conta digital do partner
 				partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.SALES,
 						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
 						"Recebimento venda pedido Id " + orderId, paymentRequest.getAmount(), orderId);
 
-				// credito na conta digital do partner
+				// debito taxa na conta digital do partner
 				partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
 						ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
 						"Pagamento taxa pedido Id " + orderId, paymentFee, orderId);
@@ -242,9 +246,8 @@ public class PaymentService {
 					}
 				}
 
-				PartnerAccount partnerAccount = partnerAccountRepository
-						.findPartnerAccountByPartner(salesOrderRequest.getPartnerRef());
-
+				PartnerAccount partnerAccount = partner.getAccount();
+				
 				// credito na conta digital do partner
 				partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.SALES,
 						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
@@ -402,13 +405,13 @@ public class PaymentService {
 			try {
 				reqBodyData = new ObjectMapper().writeValueAsString(bodyParamMap);
 			} catch (JsonProcessingException e) {
-				e.printStackTrace();
+				e.printStackTrace(); 
 			}
 			HttpEntity<String> requestEnty = new HttpEntity<>(reqBodyData, headers);
 			restTemplate = new RestTemplate();
 			response = restTemplate.postForEntity(url, requestEnty, LoginAppResponse.class);
 			if (!response.getBody().getSucesso().equals("true")) {
-				throw new CustomGenericNotFoundException("Error: not authorized");
+				throw new CustomGenericNotFoundException("Error: not authorized: "+response.getBody().getMensagem());
 			}
 		} else {
 			throw new CustomGenericNotFoundException("Error: not authorized");

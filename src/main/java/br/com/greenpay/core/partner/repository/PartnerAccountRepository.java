@@ -8,7 +8,7 @@ import br.com.greenpay.core.partner.PartnerAccount;
 
 public interface PartnerAccountRepository extends CrudRepository<PartnerAccount, Long> {
 
-	@Query("SELECT a FROM PartnerAccount a WHERE a.partner.id=:partnerId")
-	PartnerAccount findPartnerAccountByPartner(@Param("partnerId") Long partnerId);
+//	@Query("SELECT a FROM PartnerAccount a WHERE a.partner.id=:partnerId")
+//	PartnerAccount findPartnerAccountByPartner(@Param("partnerId") Long partnerId);
 
 }

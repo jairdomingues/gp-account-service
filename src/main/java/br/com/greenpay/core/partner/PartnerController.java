@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+
 import br.com.greenpay.core.partner.request.CreatePlanRequest;
 import br.com.greenpay.core.partner.request.PartnerRequest;
 import br.com.greenpay.core.partner.response.PartnerResponse;
@@ -67,8 +69,9 @@ public class PartnerController {
 
 	@GetMapping("/import_partner")
 	public ResponseEntity<?> importPartner() {
-		partnerService.importPartner();
-		return ResponseEntity.ok("Importado com sucesso");
+		String size = partnerService.importPartner();
+		Gson gson = new Gson();    
+		return ResponseEntity.ok(gson.toJson(size));
 	}
 
 	@PutMapping("{id}/plans/{planId}")

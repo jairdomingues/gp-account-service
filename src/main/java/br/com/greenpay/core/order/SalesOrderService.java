@@ -1,5 +1,6 @@
 package br.com.greenpay.core.order;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,10 @@ import br.com.greenpay.core.order.repository.SalesOrderRepository;
 import br.com.greenpay.core.order.request.SalesOrderRequest;
 import br.com.greenpay.core.order.response.ResultPaymentResponse;
 import br.com.greenpay.core.order.response.SalesOrderResponse;
+import br.com.greenpay.core.partner.model.Partner;
+import br.com.greenpay.core.partner.repository.PartnerRepository;
+import br.com.greenpay.core.product.model.Product;
+import br.com.greenpay.core.product.repository.ProductRepository;
 import br.com.greenpay.core.system.exception.CustomGenericNotFoundException;
 
 @Service
@@ -29,11 +34,33 @@ public class SalesOrderService {
 	private SalesOrderRepository salesOrderRepository;
 	
 	@Autowired
+	private PartnerRepository partnerRepository;
+
+	@Autowired
+	private ProductRepository productRepository;
+
+	@Autowired
 	private PaymentService paymentService;
 	
+	private Product convert(Product product) {
+		return productRepository.findById(product.getId()).orElse(null);
+	}
+	
 	public SalesOrderResponse createOrder(SalesOrderRequest salesOrderRequest) {
+		
+		Partner partner = partnerRepository.findById(salesOrderRequest.getPartnerRef())
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
+
 		SalesOrder salesOrder = this.convertToSalesOrder(salesOrderRequest);
 		salesOrder.setStatus(SalesOrder.Status.PENDING);
+		salesOrder.getProducts().stream().forEach(i -> i.setPartner(partner));
+		List<Product> listProducts = new ArrayList<Product>();
+		for (Product product : salesOrder.getProducts()) {
+			product = productRepository.findById(product.getId()).orElse(null);
+			listProducts.add(product);
+		}
+		salesOrder.setProducts(new ArrayList<Product>());
+		salesOrder.setProducts(listProducts);
 		salesOrderRepository.save(salesOrder);
 		if (salesOrderRequest.getEcommerce()) {
 			ResultPaymentResponse response = paymentService.paymentSalesOrder(salesOrder.getId(), salesOrderRequest);
