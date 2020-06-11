@@ -535,7 +535,7 @@ public class PaymentService {
 		}
 	}
 
-	public void moipBoleto() {
+	public br.com.moip.resource.Payment moipBoleto() {
 
 		API api = this.buildSetup();
 
@@ -544,8 +544,6 @@ public class PaymentService {
 						.amount(new OrderAmountRequest().currency("BRL")
 								.subtotals(new SubtotalsRequest().shipping(1000).addition(100).discount(500)))
 						.addItem("Nome do produto 1", 1, "Mais info...", 100)
-						.addItem("Nome do produto 2", 2, "Mais info...", 200)
-						.addItem("Nome do produto 3", 3, "Mais info...", 300)
 						.customer(new CustomerRequest().id("CUS-QAF1QEA23J7B")).addReceiver(new ReceiverRequest()
 								.secondary("MPA-E3C8493A06AE", new AmountRequest().percentual(50), false)));
 
@@ -561,6 +559,7 @@ public class PaymentService {
 									.first("Primeira linha").second("Segunda linha").third("Terceira linha")))));
 
 			System.out.println(createdPayment);
+			return createdPayment;
 
 		} catch (UnauthorizedException e) {
 			System.out.println(e.getMessage());
@@ -569,7 +568,7 @@ public class PaymentService {
 		} catch (ValidationException e) {
 			System.out.println(e.getMessage());
 		}
-
+		return null;
 	}
 
 	public br.com.moip.resource.Account createAccountWireCard(AccountWireCardRequest accountWireCard) {

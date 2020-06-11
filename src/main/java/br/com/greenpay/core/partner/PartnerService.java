@@ -51,10 +51,10 @@ public class PartnerService {
 	//TODO Colocar estes endpoints dentro de arquivos de configuração
 	private static final String API_KEY = "b47301eD474e48c9428f4Rc";
 	private static final String TREEP_URI = "https://tpkmarket.eybpro.com/api/get_clientes.php?apikey=";
-	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
-//	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
-	private static final String USER_URI = "http://localhost:8088/api/auth/";
-//	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
+//	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
+	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
+//	private static final String USER_URI = "http://localhost:8088/api/auth/";
+	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
 
 	@Autowired
 	private PartnerRepository partnerRepository;
