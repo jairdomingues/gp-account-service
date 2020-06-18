@@ -92,6 +92,7 @@ import br.com.moip.request.ShippingAddressRequest;
 import br.com.moip.request.SubtotalsRequest;
 import br.com.moip.request.TaxDocumentRequest;
 import br.com.moip.resource.Order;
+import br.com.moip.resource.PaymentStatus;
 
 @Service
 @Transactional
@@ -362,34 +363,8 @@ public class PaymentService {
 		accountWireCardRequest.setMoipAccount(account.getId());
 		PaymentWireCard paymentWireCard = this.moipCard(accountWireCardRequest, createPlanReques.getCard());
 
-		ReleaseHistory.Status status = null;
-		if (paymentWireCard.getStatus().equalsIgnoreCase("IN_ANALYSIS")) {
-			status = ReleaseHistory.Status.BLOCKED;
-		}
-		partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.PAYMENT,
-				ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Lançamento adesão",
-				plan.getMemberFee(), null);
-
-		Long releaseHistoryId = partnerAccountService.createReleaseHistory(partnerAccount.getId(),
-				ReleaseHistory.Operation.TRANSFER, ReleaseHistory.TransactionType.CREDIT, status, "Pagamento adesão",
-				plan.getMemberFee(), null);
-
 		paymentWireCard.setPartner(partner);
-		paymentWireCard.setReleaseHistoryId(releaseHistoryId);
 		paymentWireCardRepository.save(paymentWireCard);
-
-//		PartnerAccount partnerAccountAdmin = partnerAccountRepository.findById(1l)
-//				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner Admin is not found."));
-
-		// credito na conta digital do partner admin
-//		partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.SALES,
-//				ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
-//				"Recebimento de adesão ", new BigDecimal(payment.), 1l);
-//	
-//		// credito na conta digital do partner admin
-//		partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
-//				ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
-//				"Pagamento taxa adesão ", new BigDecimal(accountWireCardRequest.getValue()), 1l);
 
 		return paymentWireCard;
 	}
@@ -478,7 +453,6 @@ public class PaymentService {
 		} else {
 			// calcula total das taxas
 			BigDecimal fixed1 = PAYMENT_FEE_AKI_1.add(PAYMENT_FEE_AKI_2).setScale(2, BigDecimal.ROUND_DOWN);
-			;
 			BigDecimal fixed2 = PAYMENT_FEE_GREEN_1.add(PAYMENT_FEE_GREEN_2).setScale(2, BigDecimal.ROUND_DOWN);
 			;
 
@@ -679,18 +653,42 @@ public class PaymentService {
 	public PaymentWireCard listenerPayment(String paymentId) {
 
 		Authentication auth = new OAuth(oauth);
-		// Set Client
 		Client client = new Client(Client.SANDBOX, auth);
 
 		br.com.moip.resource.Payment p = client.get(String.format("/v2/payments/%s", paymentId), br.com.moip.resource.Payment.class);
-
 		PaymentWireCard payment = paymentWireCardRepository.findByPaymentWireCard(p.getId());
-		
-		Long releaseHistoryId = payment.getReleaseHistoryId();
-		ReleaseHistory releaseHistory = releaseHistoryRepository.findById(releaseHistoryId).orElse(null);
-		releaseHistory.setStatus(ReleaseHistory.Status.ACTIVE);
-		releaseHistoryRepository.save(releaseHistory);
+		if (p.getStatus().equals(PaymentStatus.AUTHORIZED))   {
+			
+			//valores do pagamento
+			BigDecimal amountPayment = new BigDecimal(payment.getAmountPayment()).divide(new BigDecimal(100));
+			BigDecimal amountReceiver1 = new BigDecimal(payment.getAmountReceiver1()).divide(new BigDecimal(100));
+			
+			//atualizacao do status do parceiro
+			partnerAccountService.createReleaseHistory(payment.getPartner().getAccount().getId(),
+					ReleaseHistory.Operation.TRANSFER, ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Pagamento adesão",
+					amountPayment, null);
 
+			//atualziacao extrato do admin
+			PartnerAccount partnerAccountAdmin = partnerAccountRepository.findById(1l)
+					.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner Admin is not found."));
+
+			//credito na conta digital do partner admin
+			partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.SALES,
+					ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
+					"Recebimento de adesão "+payment.getPartner().getFantasia().substring(0, 9), amountPayment, 1l);
+
+			//debito na conta digital do partner admin
+			partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
+					ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
+					"Taxa adesão wirecard "+payment.getPartner().getFantasia().substring(0, 9), new BigDecimal(p.getAmount().getFees()).divide(new BigDecimal(100)), 1l);
+			
+			//debito na conta digital do partner admin
+			partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
+					ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
+					"Taxa adesão "+payment.getPartner().getFantasia().substring(0, 9), amountPayment.subtract(amountReceiver1), 1l);
+			
+			
+		}
 		payment.setStatus(p.getStatus().toString());
 		paymentWireCardRepository.save(payment);
 		return payment;

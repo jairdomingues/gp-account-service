@@ -34,6 +34,7 @@ import br.com.greenpay.core.partner.model.Partner;
 import br.com.greenpay.core.partner.model.PartnerAddress;
 import br.com.greenpay.core.partner.model.PartnerContact;
 import br.com.greenpay.core.partner.model.Plan;
+import br.com.greenpay.core.partner.model.ReleaseHistory;
 import br.com.greenpay.core.partner.repository.ActivityBranchRepository;
 import br.com.greenpay.core.partner.repository.PartnerRepository;
 import br.com.greenpay.core.partner.repository.PlanRepository;
@@ -158,6 +159,11 @@ public class PartnerService {
 		recurrence.setValue(partner.getPlan().getValue());
 		recurrenceRepository.save(recurrence);
 		
+		//lancamento do debito da adesao
+		partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.PAYMENT,
+				ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Lançamento adesão",
+				plan.getMemberFee(), null);
+
 		//envia o pagamento para a wirecard e cria conta transparente
 		return paymentService.accountWireCard(partner, plan, partnerAccount, createPlanRequest);
 	}
