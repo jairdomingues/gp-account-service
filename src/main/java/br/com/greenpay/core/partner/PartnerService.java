@@ -2,6 +2,8 @@ package br.com.greenpay.core.partner;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import br.com.greenpay.core.order.PaymentService;
+import br.com.greenpay.core.order.model.PaymentWireCard;
 import br.com.greenpay.core.order.repository.AccountWireCardRepository;
 import br.com.greenpay.core.partner.model.ActivityBranch;
 import br.com.greenpay.core.partner.model.Address;
@@ -41,6 +44,9 @@ import br.com.greenpay.core.partner.request.SignupRequest;
 import br.com.greenpay.core.partner.response.PartnerResponse;
 import br.com.greenpay.core.partner.response.PlanResponse;
 import br.com.greenpay.core.system.exception.CustomGenericNotFoundException;
+import br.com.greenpay.core.system.model.CreditCard;
+import br.com.greenpay.core.system.model.Recurrence;
+import br.com.greenpay.core.system.repository.RecurrenceRepository;
 
 @Service
 @Transactional
@@ -48,13 +54,13 @@ public class PartnerService {
 
 	private static final Log LOGGER = LogFactory.getLog(PartnerService.class);
 
-	//TODO Colocar estes endpoints dentro de arquivos de configuração
+	// TODO Colocar estes endpoints dentro de arquivos de configuração
 	private static final String API_KEY = "b47301eD474e48c9428f4Rc";
 	private static final String TREEP_URI = "https://tpkmarket.eybpro.com/api/get_clientes.php?apikey=";
-//	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
-	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
-//	private static final String USER_URI = "http://localhost:8088/api/auth/";
-	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
+	private static final String GEOCODES_URI = "http://localhost:8089/geocodes";
+//	private static final String GEOCODES_URI = "https://gp-latlong.wl.r.appspot.com/geocodes";
+	private static final String USER_URI = "http://localhost:8088/api/auth/";
+//	private static final String USER_URI = "https://gp-security-jwt-authentication.uc.r.appspot.com/api/auth/";
 
 	@Autowired
 	private PartnerRepository partnerRepository;
@@ -73,6 +79,9 @@ public class PartnerService {
 
 	@Autowired
 	private ActivityBranchRepository activityBranchRepository;
+
+	@Autowired
+	private RecurrenceRepository recurrenceRepository;
 
 	public PartnerResponse createPartner(PartnerRequest partnerRequest) {
 		Partner partner = this.convertToPartner(partnerRequest);
@@ -105,19 +114,52 @@ public class PartnerService {
 		return convertToPartnerResponse(partner);
 	}
 
-	public void createPlan(CreatePlanRequest createPlanRequest, Long partnerId, Long planId) {
+	public PaymentWireCard createPlan(CreatePlanRequest createPlanRequest, Long partnerId, Long planId) {
 
+		//recupera o partner
 		Partner partner = partnerRepository.findById(partnerId)
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
-		
+
+		//recupera o plano selecionado
 		Plan plan = planRepository.findById(planId)
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Plan is not found."));
 
-		partner.setPlan(plan);
-		PartnerAccount partnerAccount = partnerAccountService.createPartnerAccount(partnerId);
+		//cartao de credito para pagamento
+		CreditCard creditCard = new CreditCard();
+		creditCard.setActive(true);
+		creditCard.setBrand(createPlanRequest.getCard().getBrand());
+		creditCard.setCardholderName(createPlanRequest.getCard().getCardholderName());
+		creditCard.setCardNumber(createPlanRequest.getCard().getCardNumber());
+		creditCard.setExpirationMonth(createPlanRequest.getCard().getExpirationMonth());
+		creditCard.setExpirationYear(createPlanRequest.getCard().getExpirationYear());
+		creditCard.setSecurityCode(createPlanRequest.getCard().getSecurityCode());
+
+		//cria conta do partner
+		PartnerAccount partnerAccount = partnerAccountService.createPartnerAccount(partnerId, creditCard);
+
+		//atualiza conta do partner
 		partner.setAccount(partnerAccount);
+
+		//atualiza o plano do partner
+		partner.setPlan(plan);
 		partnerRepository.save(partner);
-		paymentService.accountWireCard(partner, plan, partnerAccount, createPlanRequest);
+
+		//atualiza a recorrencia
+		Recurrence recurrence = new Recurrence();
+		recurrence.setPartner(partner);
+		recurrence.setActive(true);
+		recurrence.setName(partner.getPlan().getName());
+		recurrence.setPending(false);
+		LocalDate dataAtual = LocalDate.now();
+		dataAtual = dataAtual.plusDays(30);
+		ZoneId defaultZoneId = ZoneId.systemDefault();
+		Date date = Date.from(dataAtual.atStartOfDay(defaultZoneId).toInstant());
+		recurrence.setTransactionDate(date);
+		recurrence.setValue(partner.getPlan().getValue());
+		recurrenceRepository.save(recurrence);
+		
+		//envia o pagamento para a wirecard e cria conta transparente
+		return paymentService.accountWireCard(partner, plan, partnerAccount, createPlanRequest);
 	}
 
 	public List<PlanResponse> findAllPlansActive() {
@@ -135,12 +177,12 @@ public class PartnerService {
 		ResponseEntity<Partners[]> response = restTemplate.getForEntity(url, Partners[].class);
 		Partners[] partners = response.getBody();
 		Integer size = 0;
-		
+
 		for (Partners p : partners) {
 
 			// create user
 			String userId = this.callUser(p);
-			//retorna false caso ja tenho um email cadadastrado, senão retorna o ID do user
+			// retorna false caso ja tenho um email cadadastrado, senão retorna o ID do user
 			if (userId.equalsIgnoreCase("exists")) {
 				continue;
 			}
@@ -192,7 +234,7 @@ public class PartnerService {
 			partnerRepository.save(partner);
 			size++;
 		}
-		String total = size.toString()+"/"+new Integer(partners.length).toString();
+		String total = size.toString() + "/" + new Integer(partners.length).toString();
 		return total;
 	}
 
@@ -236,7 +278,7 @@ public class PartnerService {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<SignupRequest> entity = new HttpEntity<SignupRequest>(signupRequest, headers);
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> result = restTemplate.postForEntity(USER_URI+"import", entity, String.class);
+		ResponseEntity<String> result = restTemplate.postForEntity(USER_URI + "import", entity, String.class);
 		return result.getBody();
 	}
 

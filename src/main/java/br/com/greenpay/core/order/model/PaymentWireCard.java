@@ -26,6 +26,7 @@ public class PaymentWireCard extends BaseEntity {
 	private String amountPayment;
 	private String amountReceiver1;
 	private String amountReceiver2;
+	private Long releaseHistoryId;
 
 	@ManyToOne
 	private Partner partner;

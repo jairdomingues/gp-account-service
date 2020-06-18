@@ -16,6 +16,7 @@ import javax.persistence.Transient;
 import br.com.greenpay.core.partner.model.Partner;
 import br.com.greenpay.core.partner.model.ReleaseHistory;
 import br.com.greenpay.core.system.model.BaseEntity;
+import br.com.greenpay.core.system.model.CreditCard;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,9 +36,9 @@ public class PartnerAccount extends BaseEntity {
 	private Boolean active;
 	private BigDecimal lastBalance;
 
-//	@ManyToOne
-//	private Partner partner;
-
+	@ManyToOne(cascade = CascadeType.ALL)
+	private CreditCard creditCard;
+	
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "partner_id")
 	@OrderBy("id DESC")

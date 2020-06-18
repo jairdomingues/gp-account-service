@@ -75,8 +75,8 @@ public class PartnerController {
 	}
 
 	@PutMapping("{id}/plans/{planId}")
-	public void createPlan(@Valid @RequestBody CreatePlanRequest createPlanReques, @PathVariable(name = "id") Long partnerId, @PathVariable(name = "planId") Long planId) {
-		partnerService.createPlan(createPlanReques, partnerId, planId);
+	public ResponseEntity<?> createPlan(@Valid @RequestBody CreatePlanRequest createPlanReques, @PathVariable(name = "id") Long partnerId, @PathVariable(name = "planId") Long planId) {
+		return ResponseEntity.ok(partnerService.createPlan(createPlanReques, partnerId, planId));
 	}
 
 	@GetMapping(path = "/plans", produces = "application/json")

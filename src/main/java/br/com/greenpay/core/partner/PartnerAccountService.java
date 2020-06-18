@@ -2,6 +2,7 @@ package br.com.greenpay.core.partner;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.greenpay.core.order.model.SalesOrder;
 import br.com.greenpay.core.partner.model.Partner;
 import br.com.greenpay.core.partner.model.ReleaseHistory;
 import br.com.greenpay.core.partner.model.ReleaseHistory.Operation;
@@ -21,6 +23,7 @@ import br.com.greenpay.core.partner.repository.PartnerAccountRepository;
 import br.com.greenpay.core.partner.repository.PartnerRepository;
 import br.com.greenpay.core.partner.response.PartnerAccountResponse;
 import br.com.greenpay.core.system.exception.CustomGenericNotFoundException;
+import br.com.greenpay.core.system.model.CreditCard;
 
 @Service
 @Transactional
@@ -34,7 +37,7 @@ public class PartnerAccountService {
 	@Autowired
 	PartnerAccountRepository partnerAccountRepository;
 
-	public PartnerAccount createPartnerAccount(Long partnerId) {
+	public PartnerAccount createPartnerAccount(Long partnerId, CreditCard creditCard) {
 		
 		Partner partner = partnerRepository.findById(partnerId)
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
@@ -42,12 +45,12 @@ public class PartnerAccountService {
 		PartnerAccount partnerAccount = new PartnerAccount();
 		partnerAccount.setActive(true);
 		partnerAccount.setName(partner.getFantasia());
-//		partnerAccount.setPartner(partner);
+		partnerAccount.setCreditCard(creditCard);
 		partnerAccountRepository.save(partnerAccount);
 		return partnerAccount;
 	}
 
-	public void createReleaseHistory(Long idAccount, Operation operation, TransactionType transactionType, Status status,
+	public Long createReleaseHistory(Long idAccount, Operation operation, TransactionType transactionType, Status status,
 			String history, BigDecimal amount, Long orderId) {
 
 		PartnerAccount account = partnerAccountRepository.findById(idAccount)
@@ -66,7 +69,7 @@ public class PartnerAccountService {
 		releaseHistory.setHistory(history);
 		releaseHistory.setAmount(amount);
 		releaseHistory.setTransactionDate(new Date());
-		//transactionHistory.setOrderId(orderId);
+//		releaseHistory.setOrder(orderId);
 
 		List<ReleaseHistory> releases = account.getReleases() != null
 				&& !account.getReleases().isEmpty() ? account.getReleases()
@@ -74,6 +77,9 @@ public class PartnerAccountService {
 		releases.add(releaseHistory);
 		account.setReleases(releases);
 		partnerAccountRepository.save(account);
+		
+		return account.getReleases().stream()
+				.sorted(Comparator.comparing(ReleaseHistory::getId).reversed()).findAny().get().getId();
 
 	}
 	

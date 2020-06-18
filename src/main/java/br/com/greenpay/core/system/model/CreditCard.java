@@ -16,7 +16,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name = "CREDIT_CARD", uniqueConstraints = @UniqueConstraint(columnNames = "cardNumber"))
+//@Table(name = "CREDIT_CARD", uniqueConstraints = @UniqueConstraint(columnNames = "cardNumber"))
+@Table(name = "CREDIT_CARD")
 public class CreditCard extends Account {
 
 	private String cardNumber;

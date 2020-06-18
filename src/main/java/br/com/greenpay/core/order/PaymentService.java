@@ -30,6 +30,7 @@ import br.com.greenpay.core.order.model.Payment;
 import br.com.greenpay.core.order.model.PaymentWireCard;
 import br.com.greenpay.core.order.model.SalesOrder;
 import br.com.greenpay.core.order.repository.AccountWireCardRepository;
+import br.com.greenpay.core.order.repository.PaymentWireCardRepository;
 import br.com.greenpay.core.order.repository.SalesOrderRepository;
 import br.com.greenpay.core.order.request.PaymentRequest;
 import br.com.greenpay.core.order.request.SalesOrderRequest;
@@ -41,6 +42,7 @@ import br.com.greenpay.core.partner.model.Plan;
 import br.com.greenpay.core.partner.model.ReleaseHistory;
 import br.com.greenpay.core.partner.repository.PartnerAccountRepository;
 import br.com.greenpay.core.partner.repository.PartnerRepository;
+import br.com.greenpay.core.partner.repository.ReleaseHistoryRepository;
 import br.com.greenpay.core.partner.request.CardRequest;
 import br.com.greenpay.core.partner.request.CreatePlanRequest;
 import br.com.greenpay.core.system.AccountService;
@@ -51,10 +53,10 @@ import br.com.greenpay.core.system.model.CreditCard;
 import br.com.greenpay.core.system.model.CurrentAccount;
 import br.com.greenpay.core.system.model.Customer;
 import br.com.greenpay.core.system.model.TokenAccount;
-import br.com.greenpay.core.system.model.Wallet;
 import br.com.greenpay.core.system.model.TransactionHistory.Operation;
 import br.com.greenpay.core.system.model.TransactionHistory.Status;
 import br.com.greenpay.core.system.model.TransactionHistory.TransactionType;
+import br.com.greenpay.core.system.model.Wallet;
 import br.com.greenpay.core.system.repository.AccountRepository;
 import br.com.greenpay.core.system.repository.CustomerRepository;
 import br.com.greenpay.core.system.repository.TokenAccountRepository;
@@ -106,11 +108,21 @@ public class PaymentService {
 	private static final BigDecimal PAYMENT_FEE_GREEN_2 = new BigDecimal(1.3);
 	private static final BigDecimal PAYMENT_FEE_MEMBER_SHIP_GREEN = new BigDecimal(97.0);
 
+	// Basic Auth
+	private final String token = "A4AALFS3JAPUSDE5RJ1VTP1LENMT5KOQ";
+	private final String key = "JEW5FQ0ZV5MJUQWRLEXTYH0F843KDJOPW8XGZE0W";
+
+	// OAuth
+	private final String oauth = "5d64a91d276443a7a2befab13156e23b_v2";
+
 	@Autowired
 	CustomerRepository customerRepository;
 
 	@Autowired
 	SalesOrderRepository salesOrderRepository;
+
+	@Autowired
+	ReleaseHistoryRepository releaseHistoryRepository;
 
 	@Autowired
 	TokenAccountRepository tokenAccountRepository;
@@ -133,13 +145,16 @@ public class PaymentService {
 	@Autowired
 	private AccountWireCardRepository accountWireCardRepository;
 
+	@Autowired
+	private PaymentWireCardRepository paymentWireCardRepository;
+
 	public ResultPaymentResponse paymentSalesOrder(Long orderId, SalesOrderRequest salesOrderRequest) {
 
 		// identifica cliente do pedido
 		Customer customer = customerRepository.findById(salesOrderRequest.getClientRef())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Customer is not found."));
 
-		//identifica parceiro do pedido
+		// identifica parceiro do pedido
 		Partner partner = partnerRepository.findById(salesOrderRequest.getPartnerRef())
 				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
 
@@ -148,7 +163,7 @@ public class PaymentService {
 		Boolean paymentCredit = false;
 
 		ResultPaymentResponse resultPaymentResponse = new ResultPaymentResponse();
-		
+
 		// processa os metodos do pagamento informados
 		for (PaymentRequest paymentRequest : salesOrderRequest.getPayments()) {
 
@@ -165,13 +180,13 @@ public class PaymentService {
 							paymentRequest.getAmount(), orderId);
 				}
 
-				// calculo taxa paga para o app 
+				// calculo taxa paga para o app
 				BigDecimal paymentFee = (paymentRequest.getAmount().multiply(PAYMENT_FEE_ACCOUNT))
 						.divide(new BigDecimal(100));
 
 				// recupera conta do parceiro
 				PartnerAccount partnerAccount = partner.getAccount();
-				
+
 				// credito na conta digital do partner
 				partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.SALES,
 						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
@@ -247,7 +262,7 @@ public class PaymentService {
 				}
 
 				PartnerAccount partnerAccount = partner.getAccount();
-				
+
 				// credito na conta digital do partner
 				partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.SALES,
 						ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
@@ -306,7 +321,7 @@ public class PaymentService {
 		salesOrderRepository.save(salesOrder);
 	}
 
-	public void accountWireCard(Partner partner, Plan plan, PartnerAccount partnerAccount,
+	public PaymentWireCard accountWireCard(Partner partner, Plan plan, PartnerAccount partnerAccount,
 			CreatePlanRequest createPlanReques) {
 
 		// criar wirecard para conta transparente do partner
@@ -330,10 +345,10 @@ public class PaymentService {
 		// transforma em centavos para api da wirecard
 		String value = plan.getMemberFee().toString().replace(".", "");
 		accountWireCardRequest.setValue(value);
-		//criar conta transparente para wirecard
+		// criar conta transparente para wirecard
 		br.com.moip.resource.Account account = this.createAccountWireCard(accountWireCardRequest);
 
-		//salvar dados da conta transparente criada para wirecard
+		// salvar dados da conta transparente criada para wirecard
 		AccountWireCard accountWireCard = new AccountWireCard();
 		accountWireCard.set_id(account.getId());
 		accountWireCard.setAccessToken(account.getAccessToken());
@@ -343,22 +358,28 @@ public class PaymentService {
 		accountWireCard.setTransparentAccount(true);
 		accountWireCardRepository.save(accountWireCard);
 
-		//efetuar o pagamento cartão de crédito
+		// efetuar o pagamento cartão de crédito
 		accountWireCardRequest.setMoipAccount(account.getId());
 		PaymentWireCard paymentWireCard = this.moipCard(accountWireCardRequest, createPlanReques.getCard());
-		paymentWireCard.setPartner(partner);
-		accountWireCardRepository.save(accountWireCard);
 
+		ReleaseHistory.Status status = null;
+		if (paymentWireCard.getStatus().equalsIgnoreCase("IN_ANALYSIS")) {
+			status = ReleaseHistory.Status.BLOCKED;
+		}
 		partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.PAYMENT,
 				ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Lançamento adesão",
-				plan.getMemberFee(), 1l);
+				plan.getMemberFee(), null);
 
-		partnerAccountService.createReleaseHistory(partnerAccount.getId(), ReleaseHistory.Operation.TRANSFER,
-				ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Pagamento adesão",
-				plan.getMemberFee(), 1l);
+		Long releaseHistoryId = partnerAccountService.createReleaseHistory(partnerAccount.getId(),
+				ReleaseHistory.Operation.TRANSFER, ReleaseHistory.TransactionType.CREDIT, status, "Pagamento adesão",
+				plan.getMemberFee(), null);
 
-		PartnerAccount partnerAccountAdmin = partnerAccountRepository.findById(1l)
-				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner Admin is not found."));
+		paymentWireCard.setPartner(partner);
+		paymentWireCard.setReleaseHistoryId(releaseHistoryId);
+		paymentWireCardRepository.save(paymentWireCard);
+
+//		PartnerAccount partnerAccountAdmin = partnerAccountRepository.findById(1l)
+//				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner Admin is not found."));
 
 		// credito na conta digital do partner admin
 //		partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.SALES,
@@ -370,6 +391,7 @@ public class PaymentService {
 //				ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
 //				"Pagamento taxa adesão ", new BigDecimal(accountWireCardRequest.getValue()), 1l);
 
+		return paymentWireCard;
 	}
 
 	private PaymentRequest convertToPaymentRequest(Payment payment) {
@@ -405,26 +427,19 @@ public class PaymentService {
 			try {
 				reqBodyData = new ObjectMapper().writeValueAsString(bodyParamMap);
 			} catch (JsonProcessingException e) {
-				e.printStackTrace(); 
+				e.printStackTrace();
 			}
 			HttpEntity<String> requestEnty = new HttpEntity<>(reqBodyData, headers);
 			restTemplate = new RestTemplate();
 			response = restTemplate.postForEntity(url, requestEnty, LoginAppResponse.class);
 			if (!response.getBody().getSucesso().equals("true")) {
-				throw new CustomGenericNotFoundException("Error: not authorized: "+response.getBody().getMensagem());
+				throw new CustomGenericNotFoundException("Error: not authorized: " + response.getBody().getMensagem());
 			}
 		} else {
 			throw new CustomGenericNotFoundException("Error: not authorized");
 		}
 		return response.getBody();
 	}
-
-	// Basic Auth
-	private final String token = "A4AALFS3JAPUSDE5RJ1VTP1LENMT5KOQ";
-	private final String key = "JEW5FQ0ZV5MJUQWRLEXTYH0F843KDJOPW8XGZE0W";
-
-	// OAuth
-	private final String oauth = "5d64a91d276443a7a2befab13156e23b_v2";
 
 	private API buildSetup() {
 
@@ -636,6 +651,49 @@ public class PaymentService {
 		} catch (ValidationException e) {
 			throw new CustomGenericNotFoundException("Error: " + e.getErrors());
 		}
+	}
+
+	public void listenerPayment() {
+
+		Authentication auth = new OAuth(oauth);
+		// Set Client
+		Client client = new Client(Client.SANDBOX, auth);
+
+		List<PaymentWireCard> payments = paymentWireCardRepository.findByStatus("IN_ANALYSIS");
+
+		for (PaymentWireCard payment : payments) {
+
+			br.com.moip.resource.Payment p = client.get(String.format("/v2/payments/%s", payment.get_id()), br.com.moip.resource.Payment.class);
+
+			Long releaseHistoryId = payment.getReleaseHistoryId();
+			ReleaseHistory releaseHistory = releaseHistoryRepository.findById(releaseHistoryId).orElse(null);
+			releaseHistory.setStatus(ReleaseHistory.Status.ACTIVE);
+			releaseHistoryRepository.save(releaseHistory);
+
+			payment.setStatus(p.getStatus().toString());
+			paymentWireCardRepository.save(payment);
+
+		}
+	}
+
+	public PaymentWireCard listenerPayment(String paymentId) {
+
+		Authentication auth = new OAuth(oauth);
+		// Set Client
+		Client client = new Client(Client.SANDBOX, auth);
+
+		br.com.moip.resource.Payment p = client.get(String.format("/v2/payments/%s", paymentId), br.com.moip.resource.Payment.class);
+
+		PaymentWireCard payment = paymentWireCardRepository.findByPaymentWireCard(p.getId());
+		
+		Long releaseHistoryId = payment.getReleaseHistoryId();
+		ReleaseHistory releaseHistory = releaseHistoryRepository.findById(releaseHistoryId).orElse(null);
+		releaseHistory.setStatus(ReleaseHistory.Status.ACTIVE);
+		releaseHistoryRepository.save(releaseHistory);
+
+		payment.setStatus(p.getStatus().toString());
+		paymentWireCardRepository.save(payment);
+		return payment;
 
 	}
 
