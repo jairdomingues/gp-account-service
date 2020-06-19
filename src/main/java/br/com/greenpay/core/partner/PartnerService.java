@@ -168,6 +168,23 @@ public class PartnerService {
 		return paymentService.accountWireCard(partner, plan, partnerAccount, createPlanRequest);
 	}
 
+	public void upgradePlan( Long partnerId, Long planId) {
+
+		//recupera o partner
+		Partner partner = partnerRepository.findById(partnerId)
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner is not found."));
+
+		//recupera o plano selecionado
+		Plan plan = planRepository.findById(planId)
+				.orElseThrow(() -> new CustomGenericNotFoundException("Error: Plan is not found."));
+
+		//atualiza o plano do partner
+		partner.setPlan(plan);
+		partnerRepository.save(partner);
+		
+		
+	}
+	
 	public List<PlanResponse> findAllPlansActive() {
 		List<Plan> plans = (List<Plan>) planRepository.findAll();
 		return plans.stream().filter(x -> x.getActive()).map(this::convertToPlanResponse).collect(Collectors.toList());

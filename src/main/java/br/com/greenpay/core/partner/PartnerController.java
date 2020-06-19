@@ -79,6 +79,11 @@ public class PartnerController {
 		return ResponseEntity.ok(partnerService.createPlan(createPlanReques, partnerId, planId));
 	}
 
+	@PutMapping("{id}/plans/{planId}/upgrade")
+	public void createPlan(@Valid @PathVariable(name = "id") Long partnerId, @PathVariable(name = "planId") Long planId) {
+		partnerService.upgradePlan( partnerId, planId);
+	}
+
 	@GetMapping(path = "/plans", produces = "application/json")
 	public List<PlanResponse> findAllPlansActive() {
 		return partnerService.findAllPlansActive();

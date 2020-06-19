@@ -654,9 +654,14 @@ public class PaymentService {
 
 		Authentication auth = new OAuth(oauth);
 		Client client = new Client(Client.SANDBOX, auth);
-
+		
+		//busca as informaçoes do pagamento ma wirecard
 		br.com.moip.resource.Payment p = client.get(String.format("/v2/payments/%s", paymentId), br.com.moip.resource.Payment.class);
+		
+		//busca as informaçoes do pagamento
 		PaymentWireCard payment = paymentWireCardRepository.findByPaymentWireCard(p.getId());
+		
+		//caso tenha autorizado
 		if (p.getStatus().equals(PaymentStatus.AUTHORIZED))   {
 			
 			//valores do pagamento
@@ -668,7 +673,7 @@ public class PaymentService {
 					ReleaseHistory.Operation.TRANSFER, ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE, "Pagamento adesão",
 					amountPayment, null);
 
-			//atualziacao extrato do admin
+			//atualizacao extrato do admin
 			PartnerAccount partnerAccountAdmin = partnerAccountRepository.findById(1l)
 					.orElseThrow(() -> new CustomGenericNotFoundException("Error: Partner Admin is not found."));
 
@@ -677,18 +682,26 @@ public class PaymentService {
 					ReleaseHistory.TransactionType.CREDIT, ReleaseHistory.Status.ACTIVE,
 					"Recebimento de adesão "+payment.getPartner().getFantasia().substring(0, 9), amountPayment, 1l);
 
-			//debito na conta digital do partner admin
+			//debito taxa wirecard na conta digital do partner admin
 			partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
 					ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
 					"Taxa adesão wirecard "+payment.getPartner().getFantasia().substring(0, 9), new BigDecimal(p.getAmount().getFees()).divide(new BigDecimal(100)), 1l);
 			
-			//debito na conta digital do partner admin
+			//debito taxa na conta digital do partner admin
 			partnerAccountService.createReleaseHistory(partnerAccountAdmin.getId(), ReleaseHistory.Operation.PAYMENT_FEE,
 					ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE,
 					"Taxa adesão "+payment.getPartner().getFantasia().substring(0, 9), amountPayment.subtract(amountReceiver1), 1l);
 			
 			
+		} else {
+			//caso saia de analise e nao receba autorizado
+			if (!p.getStatus().equals(PaymentStatus.IN_ANALYSIS))   {
+				Partner partner = payment.getPartner();
+				partner.setPlan(null);
+				partnerRepository.save(partner);
+			}
 		}
+		//atualiza status do pagamento
 		payment.setStatus(p.getStatus().toString());
 		paymentWireCardRepository.save(payment);
 		return payment;
