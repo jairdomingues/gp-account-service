@@ -50,7 +50,7 @@ public class PartnerAccountService {
 		return partnerAccount;
 	}
 
-	public Long createReleaseHistory(Long idAccount, Operation operation, TransactionType transactionType, Status status,
+	public void createReleaseHistory(Long idAccount, Operation operation, TransactionType transactionType, Status status,
 			String history, BigDecimal amount, Long orderId) {
 
 		PartnerAccount account = partnerAccountRepository.findById(idAccount)
@@ -78,9 +78,6 @@ public class PartnerAccountService {
 		account.setReleases(releases);
 		partnerAccountRepository.save(account);
 		
-		return account.getReleases().stream()
-				.sorted(Comparator.comparing(ReleaseHistory::getId).reversed()).findAny().get().getId();
-
 	}
 	
 	public PartnerAccountResponse findPartnerAccountByPartner(Long partnerId) {

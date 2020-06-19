@@ -238,7 +238,7 @@ public class AccountService {
 	}
 
 	public br.com.moip.resource.Payment createDeposit(DepositRequest depositRequest) {
-		return paymentService.moipBoleto();
+		return paymentService.moipBoleto(depositRequest);
 	}
 	
 	private CurrentAccount convertToCurrentAccount(CurrentAccountRequest accountRequest) {

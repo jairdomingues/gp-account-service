@@ -17,6 +17,8 @@ public class PartnerResponse implements Serializable {
 	private String fantasia;
 	private String razaoSocial;
 	private String userId;
+	private String email;
+	private Boolean activatedPlan;
 	private List<PartnerAddressResponse> adresses;
 	private PlanResponse plan;
 	private ActivityBranchResponse activityBranch;

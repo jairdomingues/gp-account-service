@@ -13,7 +13,7 @@ public class DepositRequest implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private String cpf;
-	private List<PaymentRequest> payments;
-	private String uuid;
+	private Long customerId;
+	private String amount;
+	
 }

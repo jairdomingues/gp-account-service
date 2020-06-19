@@ -60,6 +60,7 @@ import br.com.greenpay.core.system.model.Wallet;
 import br.com.greenpay.core.system.repository.AccountRepository;
 import br.com.greenpay.core.system.repository.CustomerRepository;
 import br.com.greenpay.core.system.repository.TokenAccountRepository;
+import br.com.greenpay.core.system.request.DepositRequest;
 import br.com.greenpay.core.system.request.LoginAppRequest;
 import br.com.greenpay.core.system.request.TokenAccountValidRequest;
 import br.com.greenpay.core.system.response.LoginAppResponse;
@@ -524,15 +525,18 @@ public class PaymentService {
 		}
 	}
 
-	public br.com.moip.resource.Payment moipBoleto() {
+	public br.com.moip.resource.Payment moipBoleto(DepositRequest depositRequest) {
 
 		API api = this.buildSetup();
 
+		// transforma em centavos para api da wirecard
+		String value = depositRequest.getAmount().replace(".", "");
+		
 		Order createdOrder = api.order()
 				.create(new OrderRequest().ownId("ORD-" + System.currentTimeMillis())
 						.amount(new OrderAmountRequest().currency("BRL")
-								.subtotals(new SubtotalsRequest().shipping(1000).addition(100).discount(500)))
-						.addItem("Nome do produto 1", 1, "Mais info...", 100)
+								.subtotals(new SubtotalsRequest().shipping(0).addition(0).discount(0)))
+						.addItem("Conta Digital", 1, "Mais info...", new Integer(value))
 						.customer(new CustomerRequest().id("CUS-QAF1QEA23J7B")).addReceiver(new ReceiverRequest()
 								.secondary("MPA-E3C8493A06AE", new AmountRequest().percentual(50), false)));
 
@@ -545,7 +549,8 @@ public class PaymentService {
 							.expirationDate(new ApiDateRequest()
 									.date(new GregorianCalendar(2020, Calendar.NOVEMBER, 10).getTime()))
 							.logoUri("http://logo.com").instructionLines(new InstructionLinesRequest()
-									.first("Primeira linha").second("Segunda linha").third("Terceira linha")))));
+									))));
+//									.first("Primeira linha").second("Segunda linha").third("Terceira linha")))));
 
 			System.out.println(createdPayment);
 			return createdPayment;
@@ -663,6 +668,10 @@ public class PaymentService {
 		
 		//caso tenha autorizado
 		if (p.getStatus().equals(PaymentStatus.AUTHORIZED))   {
+
+			Partner partner = payment.getPartner();
+			partner.setActivatedPlan(true);
+			partnerRepository.save(partner);
 			
 			//valores do pagamento
 			BigDecimal amountPayment = new BigDecimal(payment.getAmountPayment()).divide(new BigDecimal(100));
@@ -697,7 +706,7 @@ public class PaymentService {
 			//caso saia de analise e nao receba autorizado
 			if (!p.getStatus().equals(PaymentStatus.IN_ANALYSIS))   {
 				Partner partner = payment.getPartner();
-				partner.setPlan(null);
+				partner.setActivatedPlan(false);
 				partnerRepository.save(partner);
 			}
 		}

@@ -32,9 +32,11 @@ public class Partner extends BaseEntity {
 	private String fantasia;
 	private String razaoSocial;
 	private String userId;
+	private String email;
 	private String deltaId;
 	private Date deltaDate;
-
+	private Boolean activatedPlan;
+	
 	@OneToOne
 	private PartnerAccount account;
 

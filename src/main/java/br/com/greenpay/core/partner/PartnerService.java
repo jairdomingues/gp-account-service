@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import br.com.greenpay.core.mail.EmailService;
 import br.com.greenpay.core.order.PaymentService;
 import br.com.greenpay.core.order.model.PaymentWireCard;
 import br.com.greenpay.core.order.repository.AccountWireCardRepository;
@@ -78,6 +79,9 @@ public class PartnerService {
 	@Autowired
 	private PaymentService paymentService;
 
+	@Autowired
+	private EmailService emailService;
+	
 	@Autowired
 	private ActivityBranchRepository activityBranchRepository;
 
@@ -164,6 +168,8 @@ public class PartnerService {
 				ReleaseHistory.TransactionType.DEBIT, ReleaseHistory.Status.ACTIVE, "Lançamento adesão",
 				plan.getMemberFee(), null);
 
+		emailService.sendMail("jairsyonet@gmail.com", "JAIR", partner.getFantasia());
+		
 		//envia o pagamento para a wirecard e cria conta transparente
 		return paymentService.accountWireCard(partner, plan, partnerAccount, createPlanRequest);
 	}
@@ -217,12 +223,14 @@ public class PartnerService {
 				throw new CustomGenericNotFoundException("Formato de data inválido");
 			}
 			Partner partner = new Partner();
+			partner.setEmail(p.getEmail());
 			partner.setDeltaId(p.getId());
 			partner.setDeltaDate(data);
 			partner.setDocument(p.getCnpj());
 			partner.setFantasia(p.getFantasia());
 			partner.setRazaoSocial(p.getRazaosocial());
 			partner.setUserId(userId);
+			partner.setActivatedPlan(false);
 			PartnerContact pc = new PartnerContact();
 			pc.setDocument(p.getCpf());
 			pc.setName(p.getContato());
